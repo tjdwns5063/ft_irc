@@ -16,12 +16,17 @@ int main(int argc, char **argv) {
     if (connect(client_sock, (sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
         std::cout << "fail\n";
     }
+    char buf[100];
     while (1) {
+        for(int i =0  ; i < 100; i++)
+            buf[i] = 0;
         std::string str;
         std::cin >> str;
         if (str == "exit")
             break ;
         write(client_sock, str.append("\n").c_str(), str.size());
+        // read(client_sock, buf, 100);
+        // write(1, buf, 100);
     }
     // std::string data;
     // data = "push\n";
