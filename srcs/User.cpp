@@ -35,6 +35,18 @@ bool User::getOp() const {
     return (this->op);
 }
 
+void User::setUserName(std::string userName) {
+    this->userName = userName;
+}
+
+void User::setNickName(std::string nickName) {
+    this->nickName = nickName;
+}
+
+void User::setOp(bool op) {
+    this->op = op;
+}
+
 #include <iostream>
 
 int main() {

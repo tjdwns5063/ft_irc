@@ -19,6 +19,9 @@ public:
     const std::string getUserName() const;
     const std::string getNickName() const;
     bool getOp() const;
+    void setUserName(std::string userName);
+    void setNickName(std::string nickName);
+    void setOp(bool op);
 };
 
 #endif
