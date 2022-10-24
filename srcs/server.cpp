@@ -84,6 +84,11 @@ int event_chk()
             else
                 return show_error("client socket error\n");
         }
+        else if (curr_event->flags & EV_EOF)
+        {
+            cout << "disconnect\n";
+            change_events(change_list, client_socket, EVFILT_READ | EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+        }
         else if (curr_event->filter == EVFILT_READ) {
             std::cout << "curr_event: read\n";
             if (curr_event->ident == server_sock)     // server_socket에서 event가 발생 했을 때
