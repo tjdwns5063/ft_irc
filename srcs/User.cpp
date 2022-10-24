@@ -1,5 +1,7 @@
 #include "User.hpp"
 
+User::User() {}
+
 User::User(int fd, std::string userName, std::string nickName, bool op)
     : fd(fd), userName(userName), nickName(nickName), op(op) {}
 
@@ -45,14 +47,4 @@ void User::setNickName(std::string nickName) {
 
 void User::setOp(bool op) {
     this->op = op;
-}
-
-#include <iostream>
-
-int main() {
-    User *user = new User(1, "sj", "jun", 0);
-    std::cout << user->getFd() << '\n';
-    std::cout << user->getUserName() << '\n';
-    std::cout << user->getNickName() << '\n';
-    std::cout << user->getOp() << '\n';
 }

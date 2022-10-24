@@ -11,6 +11,7 @@ private:
     bool op;
 
 public:
+    User();
     User(int fd, std::string userName, std::string nickName, bool op);
     User(const User& user);
     ~User();
