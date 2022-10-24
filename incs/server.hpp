@@ -10,6 +10,9 @@
 #include <vector>
 #include <map>
 #include <stdio.h>
+#include "utils.hpp"
+#include "../srcs/Channel.hpp"
+#include "../srcs/User.hpp"
 
 using namespace std;
 
@@ -31,12 +34,27 @@ class Client
         }
 };
 
-struct sockaddr_in server_addr;
-int server_sock;
-int kqueue_fd;
-std::vector<struct kevent> change_list; // kevent vector for changelist
-struct kevent event_list[10];
-int new_event;
+int show_error(string s);
+
+void change_events(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
+                    uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
+int init(int port);
+int connect_client();
+string receive(int fd);
+int wait_event();
+string get_cmd(string s);
+void request(int fd, string cmd, string s);
+int event_chk();
+void disconnect(int fd);
+
+
+extern struct sockaddr_in server_addr;
+extern int server_sock;
+extern int kqueue_fd;
+extern std::vector<struct kevent> change_list; // kevent vector for changelist
+extern struct kevent event_list[10];
+extern int new_event;
+
 
 
 #endif
