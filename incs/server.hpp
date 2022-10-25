@@ -12,7 +12,7 @@
 #include <queue>
 #include <stdio.h>
 #include "User.hpp"
-
+#include "Translator.hpp"
 using namespace std;
 
 class Server {
@@ -43,6 +43,8 @@ public:
     void run();
     int connectClient();
     int checkEvent(int newEvent);
+    User &getUser(int n);
 };
 
+vector<string> split(string input, char delimiter);
 #endif

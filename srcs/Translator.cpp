@@ -27,34 +27,44 @@ std::string Translator::translate(std::string& msg) {
 }
 
 
-string get_cmd(string s)
+
+int request(Server &server, int fd, vector<std::string> cmd)
 {
-    int cmd_len = -1;
-    string ret = "";
-    while (s[++cmd_len] != ' ')
+    int n = 0;
+
+    for (int i = 0 ; i < cmd.size(); i++)
+    {
+        std::cout << "cmd" << i << ": " << cmd[i] << std::endl;
+    }
+    if (cmd[0] == "CAP")
+    {
+        n = write(fd, ":aaa 001 aaa\n", strlen(":aaa 001 aaa\n"));
+        if (n < 0)
+            return 1;
+    }
+    else if (cmd[0] == "NICK")
+    {
+        server.getUser(fd).setNickName(cmd[1]);
+        std::cout << "nickname : " << server.getUser(fd).getNickName() << std::endl;
+    }
+    else if (cmd[0] == "USER")
+    {
+        server.getUser(fd).setUserName(cmd[1]);
+        std::cout << "username : " << server.getUser(fd).getUserName() << std::endl;
+    }
+    else if (cmd[0] == "JOIN") // channel join
         ;
-    int i = -1;
-    while (++i < cmd_len)
-        ret += s[i];
-    return ret;
-}
-
-void request(int fd, string cmd, string s)
-{
-    if (cmd == "CAP")
-        write(fd, ":aaa 001 aaa\n", strlen(":aaa 001 aaa\n"));
-    else if (cmd == "JOIN") // channel join
-        ;
-    else if (cmd == "PRIVMSG") // send msg
+    else if (cmd[0] == "PRIVMSG") // send msg
     {
 
     }
-    else if (cmd == "LEAVE" || cmd == "PART") // leave channel
+    else if (cmd[0] == "LEAVE" || cmd[0] == "PART") // leave channel
     {
 
     }
-    else if (cmd == "QUIT")
+    else if (cmd[0] == "QUIT")
     {
-        disconnect(fd);
+        close(fd);
     }
+    return 0;
 }

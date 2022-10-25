@@ -55,6 +55,18 @@ int Server::checkEvent(int newEvent) {
     while (!readFds.empty()) {
         // 파싱하고 명령어에 따라 해당 클라이언트만 등록하거나 모두 등록하거나
         addEvents(readFds.front(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+
+        std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
+        for (int j = 0 ; j < s.size(); j++)
+        {
+            std::cout << "s" << j << ": " << s[j] << std::endl;
+        }
+        std::cout << "size: "<< s.size() << std::endl;
+        for (int j = 0; j < s.size(); j++)
+        {
+            if (request(*this, readFds.front(), split(s[j], ' ')))
+                return -1;
+        }
         readFds.pop();
     }
     return 0;
@@ -106,6 +118,7 @@ int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
             status = -1;
             return -1;
         }
+        std::cout << users[currEvent->ident].getBuf() <<std::endl;
         readFds.push(currEvent->ident);
         // addEvents(currEvent->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
@@ -114,11 +127,11 @@ int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
 
 int Server::writeFlagLogic(struct kevent* currEvent, int& writeFlag) {
     std::cout << "curr_event: write\n";
-    if (send(currEvent->ident, users[currEvent->ident].getBuf(), strlen(users[currEvent->ident].getBuf()) + 1, 0) == -1) {
-        std::cerr << "write error\n";
-        status = -1;
-        return -1;
-    }
+    // if (send(currEvent->ident, users[currEvent->ident].getBuf(), strlen(users[currEvent->ident].getBuf()) + 1, 0) == -1) {
+    //     std::cerr << "write error\n";
+    //     status = -1;
+    //     return -1;
+    // }
     memset(users[currEvent->ident].getBuf(), 0, sizeof(char) * 1024);
     addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     return 1;
@@ -138,4 +151,10 @@ int Server::makeServerSock() {
         return -1;
     }
     return server_sock;
+}
+
+
+User& Server::getUser(int n)
+{
+    return users[n];
 }
