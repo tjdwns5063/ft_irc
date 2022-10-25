@@ -153,8 +153,17 @@ int Server::makeServerSock() {
     return server_sock;
 }
 
-
 User& Server::getUser(int n)
 {
     return users[n];
+}
+
+void Server::addChannel(string s)
+{
+    channels[s] = Channel();
+}
+
+Channel &Server::getChannel(string s)
+{
+    return channels.find(s)->second;
 }

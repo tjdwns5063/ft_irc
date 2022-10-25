@@ -9,15 +9,15 @@
 class Channel {
 private:
     std::vector<User> users;
-    std::map<std::string, std::vector<User> > info;
+    std::vector<User> op;
 public:
     // Channel(std::string channelName, User user);
     Channel();
     ~Channel();
     Channel(const Channel& channel);
     Channel& operator=(const Channel& channel);
-    const std::map<std::string, std::vector<User> >& getInfo() const;
-    void addChannel(std::string name, User user);
+    void addUser(User &user);
+    const std::vector<User> &getUsers();
 };
 
 #endif
