@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include "User.hpp"
 #include "Translator.hpp"
-
+#include "Channel.hpp"
 using namespace std;
 
 class Server {
@@ -26,6 +26,7 @@ private:
     int server_sock;
     int kqueue_fd;
     std::vector<struct kevent> changed;
+    std::map<string, Channel> channels;
     struct kevent event_list[10];
     std::queue<int> readFds;
 
@@ -45,8 +46,11 @@ public:
     int connectClient();
     int checkEvent(int newEvent);
     User &getUser(int n);
-    std::map<int, User>& getUsers();
+    std::map<int, User>& getUsers2();
     const std::string& getPassword() const;
+    void addChannel(string s);
+    std::map<string, Channel> &getChannels();
+    Channel &getChannel(string s);
 };
 
 vector<string> split(string input, char delimiter);

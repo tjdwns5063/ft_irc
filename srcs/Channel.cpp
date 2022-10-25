@@ -5,20 +5,21 @@ Channel::Channel() {}
 Channel::~Channel() {}
 
 Channel::Channel(const Channel& channel) {
-    this->info = channel.info;
+    this->users = channel.users;
+    this->op = channel.op;
 }
 
 Channel& Channel::operator=(const Channel& channel) {
     if (this == &channel)
         return *this;
-    this->info = channel.info;
+    this->users = channel.users;
+    this->op = channel.op;
     return *this;
 }
 
-const std::map<std::string, std::vector<User> >& Channel::getInfo() const {
-    return info;
+const std::vector<User> &Channel::getUsers() {
+    return users;
 }
-
-void Channel::addChannel(std::string name, User user) {
-    info[name].push_back(user);
+void Channel::addUser(User &user) {
+    users.push_back(user);
 }
