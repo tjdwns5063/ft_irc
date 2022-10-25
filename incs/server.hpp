@@ -9,6 +9,7 @@
 #include <sys/event.h>
 #include <vector>
 #include <map>
+#include <queue>
 #include <stdio.h>
 #include "User.hpp"
 
@@ -25,7 +26,7 @@ private:
     int kqueue_fd;
     std::vector<struct kevent> changed;
     struct kevent event_list[10];
-    char buf[1024];
+    std::queue<int> readFds;
 
 private:
     int errorFlagLogic(struct kevent* currEvent);

@@ -1,7 +1,6 @@
 #include "../incs/Server.hpp"
 
 Server::Server(int port, std::string password): port(port), password(password) {
-    memset(buf, 0, sizeof(buf));
     server_sock = makeServerSock();
     status = 0;
 
@@ -53,7 +52,11 @@ int Server::checkEvent(int newEvent) {
             writeFlagLogic(currEvent, writeFlag);
         }
     }
-    handleWriteFlag(writeFlag);
+    while (!readFds.empty()) {
+        // 파싱하고 명령어에 따라 해당 클라이언트만 등록하거나 모두 등록하거나
+        addEvents(readFds.front(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+        readFds.pop();
+    }
     return 0;
 }
 
@@ -90,53 +93,35 @@ int Server::errorFlagLogic(struct kevent* currEvent) {
 }
 
 int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
-    if (currEvent->ident == server_sock) {    // server_socket에서 event가 발생 했을 때
+    if (currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
         if (connectClient() < 0) {
             status = -1;
             return -1;
         }
     } else { //client_socket에서 event가 발생했을 때
-        if (recv(currEvent->ident, buf, sizeof(buf), 0) <= 0) {
+        if (recv(currEvent->ident, users[currEvent->ident].getBuf(), sizeof(char) * 100, 0) <= 0) {
             std::cerr << "receive error\n";
             close(currEvent->ident);
             users.erase(currEvent->ident);
             status = -1;
             return -1;
         }
-        std::cout << "buf: " << buf << '\n';
-        std::string temp = std::string(buf);
-        size_t len = temp.find('\n');
-        if (len != std::string::npos) {
-            writeFlag = 1;
-        }
+        readFds.push(currEvent->ident);
+        // addEvents(currEvent->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
     return 0;
 }
 
 int Server::writeFlagLogic(struct kevent* currEvent, int& writeFlag) {
     std::cout << "curr_event: write\n";
-    writeFlag = 2;
-    if (send(currEvent->ident, std::string(buf).c_str(), strlen(buf), 0) == -1) {
+    if (send(currEvent->ident, users[currEvent->ident].getBuf(), strlen(users[currEvent->ident].getBuf()) + 1, 0) == -1) {
         std::cerr << "write error\n";
         status = -1;
         return -1;
     }
+    memset(users[currEvent->ident].getBuf(), 0, sizeof(char) * 1024);
+    addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     return 1;
-}
-
-void Server::handleWriteFlag(int& writeFlag) {
-    int filter = 0;
-
-    if (writeFlag <= 0)
-        return ;
-    for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it) {
-        if (writeFlag == 1)
-            addEvents(it->first, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        else
-            addEvents(it->first, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-    }
-    if (writeFlag == 2)
-        memset(buf, 0, sizeof(buf));
 }
 
 int Server::getStatus() const {

@@ -1,16 +1,26 @@
 #include "User.hpp"
 
-User::User(): fd(-1), userName(""), nickName(""), op(0) {}
+User::User(): fd(-1), userName(""), nickName(""), op(0), buf(new char[1024]) {
+    memset(buf, 0, sizeof(char) * 1024);
+}
 
-User::User(int fd): fd(fd), userName(""), nickName(""), op(0) {}
+User::User(int fd): fd(fd), userName(""), nickName(""), op(0), buf(new char[1024]) {
+    memset(buf, 0, sizeof(char) * 1024);
+}
 
 User::User(int fd, std::string userName, std::string nickName, bool op)
-    : fd(fd), userName(userName), nickName(nickName), op(op) {}
+    : fd(fd), userName(userName), nickName(nickName), op(op), buf(new char[1024]) {
+        memset(buf, 0, sizeof(char) * 1024);
+    }
 
 User::User(const User& user)
-    : fd(user.fd), userName(user.userName), nickName(user.nickName), op(user.op) {}
+    : fd(user.fd), userName(user.userName), nickName(user.nickName), op(user.op), buf(new char[1024]) {
+        memset(buf, 0, sizeof(char) * 1024);
+    }
  
-User::~User() {}
+User::~User() {
+    delete[] (buf);
+}
 
 User& User::operator=(const User& user) {
     if (this == &user) {
@@ -25,6 +35,10 @@ User& User::operator=(const User& user) {
 
 int User::getFd() const {
     return (this->fd);
+}
+
+char* User::getBuf() {
+    return (this->buf);
 }
 
 const std::string User::getUserName() const {
