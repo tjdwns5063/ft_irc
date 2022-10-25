@@ -1,84 +1,5 @@
 #include "../incs/Server.hpp"
 
-int Server::connectClient()
-{
-    int client_socket;
-
-    if ((client_socket = accept(server_sock, NULL, NULL)) == -1) 
-        std::cerr << "accept error\n";
-    std::cout << "accept new client: " << client_socket << std::endl;
-    users[client_socket] = User(client_socket);
-    fcntl(client_socket, F_SETFL, O_NONBLOCK);
-    addEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-    addEvents(client_socket, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, NULL);
-    return 0;
-}
-
-void Server::addEvents(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
-    struct kevent temp;
-
-    EV_SET(&temp, ident, filter, flags, fflags, data, udata);
-    changed.push_back(temp);
-}
-
-int Server::checkEvent(int newEvent) {
-    struct kevent* curr_event;
-    int writeFlag = 0;
-
-    for (int i = 0; i < newEvent; ++i) {
-        curr_event = &event_list[i];
-        if (curr_event->flags & EV_ERROR) {
-            if (curr_event->ident == server_sock) {
-                std::cerr << "server socket error\n";
-                return 1;
-            }
-            else {
-                std::cerr << "client socket error\n";
-                return 1;
-            }
-        }
-        if (curr_event->filter == EVFILT_READ) {
-            std::cout << "curr_event: read\n";
-            if (curr_event->ident == server_sock) {    // server_socket에서 event가 발생 했을 때
-                connectClient();
-            }
-            else { //client_socket에서 event가 발생했을 때
-                if (recv(curr_event->ident, buf, sizeof(buf), 0) == -1)
-                    std::cerr << "receive error\n";
-                if (curr_event->ident != server_sock) {
-                    std::string temp = std::string(buf);
-                    size_t len = temp.find('\n');
-                    if (len != std::string::npos) {
-                        writeFlag = 1;
-                    }
-                }
-            }
-        }
-
-        if (curr_event->filter == EVFILT_WRITE) {
-            std::cout << "curr_event: write\n";
-            std::cout << "curr fd: " << curr_event->ident << '\n';
-            // std::cout << "buf: " << buf;
-            writeFlag = 2;
-            send(curr_event->ident, std::string(buf).c_str(), strlen(buf), 0);
-            // EV_SET(&changed, curr_event->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
-        }
-    }
-    if (writeFlag > 0) {
-        int filter;
-        if (writeFlag == 1)
-            filter = EV_ENABLE;
-        else
-            filter = EV_DISABLE;
-        for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it) {
-            addEvents(it->first, EVFILT_WRITE, filter, 0, 0, NULL);
-        }
-        if (writeFlag == 2)
-            memset(buf, 0, sizeof(buf));
-    }
-    return 0;
-}
-
 Server::Server(int port, std::string password): port(port), password(password) {
     memset(buf, 0, sizeof(buf));
     server_sock = makeServerSock();
@@ -106,6 +27,118 @@ Server::Server(int port, std::string password): port(port), password(password) {
 
 Server::~Server() {}
 
+void Server::run() {
+    while (1) {
+        int newEvent = kevent(kqueue_fd, &changed[0], changed.size(), event_list, 10, NULL);
+        changed.clear();
+        std::cout << "newEvent: " << newEvent << '\n';
+        checkEvent(newEvent);
+    }
+}
+
+int Server::checkEvent(int newEvent) {
+    struct kevent* currEvent;
+    int writeFlag = 0;
+
+    for (int i = 0; i < newEvent; ++i) {
+        currEvent = &event_list[i];
+        if (currEvent->flags & EV_ERROR) {
+            errorFlagLogic(currEvent);
+        }
+        if (currEvent->filter == EVFILT_READ) {
+            readFlagLogic(currEvent, writeFlag);
+        }
+
+        if (currEvent->filter == EVFILT_WRITE) {
+            writeFlagLogic(currEvent, writeFlag);
+        }
+    }
+    handleWriteFlag(writeFlag);
+    return 0;
+}
+
+int Server::connectClient()
+{
+    int client_socket;
+
+    if ((client_socket = accept(server_sock, NULL, NULL)) == -1) {
+        std::cerr << "accept error\n";
+        return 1;
+    }
+    std::cout << "accept new client: " << client_socket << std::endl;
+    users[client_socket] = User(client_socket);
+    fcntl(client_socket, F_SETFL, O_NONBLOCK);
+    addEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+    return 0;
+}
+
+void Server::addEvents(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
+    struct kevent temp;
+
+    EV_SET(&temp, ident, filter, flags, fflags, data, udata);
+    changed.push_back(temp);
+}
+
+int Server::errorFlagLogic(struct kevent* currEvent) {
+    status = -1;
+    if (currEvent->ident == server_sock) {
+        std::cerr << "server socket error\n";
+        return -1;
+    }
+    std::cerr << "client socket error\n";
+    return -1;
+}
+
+int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
+    if (currEvent->ident == server_sock) {    // server_socket에서 event가 발생 했을 때
+        if (connectClient() < 0) {
+            status = -1;
+            return -1;
+        }
+    } else { //client_socket에서 event가 발생했을 때
+        if (recv(currEvent->ident, buf, sizeof(buf), 0) <= 0) {
+            std::cerr << "receive error\n";
+            close(currEvent->ident);
+            users.erase(currEvent->ident);
+            status = -1;
+            return -1;
+        }
+        std::cout << "buf: " << buf << '\n';
+        std::string temp = std::string(buf);
+        size_t len = temp.find('\n');
+        if (len != std::string::npos) {
+            writeFlag = 1;
+        }
+    }
+    return 0;
+}
+
+int Server::writeFlagLogic(struct kevent* currEvent, int& writeFlag) {
+    std::cout << "curr_event: write\n";
+    writeFlag = 2;
+    if (send(currEvent->ident, std::string(buf).c_str(), strlen(buf), 0) == -1) {
+        std::cerr << "write error\n";
+        status = -1;
+        return -1;
+    }
+    return 1;
+}
+
+void Server::handleWriteFlag(int& writeFlag) {
+    int filter = 0;
+
+    if (writeFlag <= 0)
+        return ;
+    for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it) {
+        if (writeFlag == 1)
+            addEvents(it->first, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        else
+            addEvents(it->first, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+    }
+    if (writeFlag == 2)
+        memset(buf, 0, sizeof(buf));
+}
+
 int Server::getStatus() const {
     return status;
 }
@@ -120,13 +153,4 @@ int Server::makeServerSock() {
         return -1;
     }
     return server_sock;
-}
-
-void Server::run() {
-    while (1) {
-        int newEvent = kevent(kqueue_fd, &changed[0], changed.size(), event_list, 10, NULL);
-        changed.clear();
-        std::cout << "newEvent: " << newEvent << '\n';
-        checkEvent(newEvent);
-    }
 }

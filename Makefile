@@ -3,7 +3,7 @@ CLIENT=client
 FLAG=-Wall -Wextra #-Werror
 INCLUDE=-I./incs/
 
-SERVER_SRCS=$(addprefix ./srcs/, server.cpp User.cpp Channel.cpp Translator.cpp main.cpp)
+SERVER_SRCS=$(addprefix ./srcs/, Server.cpp User.cpp Channel.cpp Translator.cpp main.cpp)
 CLIENT_SRCS=$(addprefix ./srcs/, practice_client.cpp)
 
 SERVER_OBJS=$(SERVER_SRCS:.cpp=.o)

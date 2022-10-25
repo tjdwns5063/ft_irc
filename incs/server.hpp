@@ -27,8 +27,13 @@ private:
     struct kevent event_list[10];
     char buf[1024];
 
+private:
+    int errorFlagLogic(struct kevent* currEvent);
+    int readFlagLogic(struct kevent* currEvent, int& writeFlag);
+    int writeFlagLogic(struct kevent* currEvent, int& writeFlag);
+    void handleWriteFlag(int& writeFlag);
+
 public:
-    
     Server(int port, std::string password);
     ~Server();
     int getStatus() const;
@@ -38,14 +43,5 @@ public:
     int connectClient();
     int checkEvent(int newEvent);
 };
-
-// std::map<int, User> users;
-// struct sockaddr_in server_addr;
-// int server_sock;
-// int kqueue_fd;
-// std::vector<struct kevent> change_list; // kevent vector for changelist
-// struct kevent event_list[10];
-// int new_event;
-
 
 #endif

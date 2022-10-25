@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    server_addr.sin_port = htons(4242);
+    server_addr.sin_port = htons(std::stoi(std::string(argv[1])));
 
     if (connect(client_sock, (sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
         std::cout << "fail\n";
