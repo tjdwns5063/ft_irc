@@ -54,19 +54,18 @@ int Server::checkEvent(int newEvent) {
     }
     while (!readFds.empty()) {
         // 파싱하고 명령어에 따라 해당 클라이언트만 등록하거나 모두 등록하거나
-        addEvents(readFds.front(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
 
         std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
         for (int j = 0 ; j < s.size(); j++)
         {
             std::cout << "s" << j << ": " << s[j] << std::endl;
         }
-        std::cout << "size: "<< s.size() << std::endl;
         for (int j = 0; j < s.size(); j++)
         {
             if (request(*this, readFds.front(), split(s[j], ' ')))
                 return -1;
         }
+        memset(users[readFds.front()].getBuf(), 0, sizeof(char) * 1024);
         readFds.pop();
     }
     return 0;
@@ -160,10 +159,18 @@ User& Server::getUser(int n)
 
 void Server::addChannel(string s)
 {
-    channels[s] = Channel();
+    channels.insert(pair<std::string, Channel>(s, Channel()));
+    // channels[s] = Channel();
+}
+
+std::map<string, Channel> &Server::getChannels()
+{
+    return channels;
 }
 
 Channel &Server::getChannel(string s)
 {
+    if (channels.find(s) == channels.end())
+        addChannel(s);
     return channels.find(s)->second;
 }

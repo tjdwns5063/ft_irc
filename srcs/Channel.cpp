@@ -9,11 +9,6 @@ Channel::Channel(const Channel& channel) {
     this->op = channel.op;
 }
 
-Channel::Channel(const Channel& channel) {
-    this->users = channel.users;
-    this->op = channel.op;
-}
-
 Channel& Channel::operator=(const Channel& channel) {
     if (this == &channel)
         return *this;
@@ -24,4 +19,7 @@ Channel& Channel::operator=(const Channel& channel) {
 
 const std::vector<User> &Channel::getUsers() {
     return users;
+}
+void Channel::addUser(User &user) {
+    users.push_back(user);
 }

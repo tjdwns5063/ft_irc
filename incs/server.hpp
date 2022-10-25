@@ -47,6 +47,7 @@ public:
     int checkEvent(int newEvent);
     User &getUser(int n);
     void addChannel(string s);
+    std::map<string, Channel> &getChannels();
     Channel &getChannel(string s);
 };
 
