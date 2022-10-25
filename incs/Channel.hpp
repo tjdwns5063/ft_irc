@@ -8,8 +8,8 @@
 
 class Channel {
 private:
+    std::vector<User> users;
     std::map<std::string, std::vector<User> > info;
-
 public:
     // Channel(std::string channelName, User user);
     Channel();

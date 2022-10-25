@@ -9,6 +9,7 @@ private:
     std::string userName;
     std::string nickName;
     bool op;
+    char *buf;
 
 public:
     User();
@@ -18,6 +19,7 @@ public:
     ~User();
     User& operator=(const User& user);
     int getFd() const;
+    char* getBuf();
     const std::string getUserName() const;
     const std::string getNickName() const;
     bool getOp() const;
