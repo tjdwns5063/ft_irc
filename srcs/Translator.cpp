@@ -1,17 +1,19 @@
-// #include "server.hpp"
 #include "Translator.hpp"
-
-
 
 int request(Server &server, int fd, vector<std::string> cmd)
 {
     int n = 0;
 
-    if (cmd[0] == "CAP")
+    for (int i = 0 ; i < cmd.size(); i++)
     {
-        server.addEvents(fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
-        if (n < 0)
-            return 1;
+        std::cout << "cmd" << i << ": " << cmd[i] << std::endl;
+    }
+    if (cmd[0] == "PASS")
+    {
+        const std::string& pw = server.getPassword();
+        if (pw != cmd[1]) {
+            write(fd, ":seongjki Password incorrect\n", strlen(":seongjki Password incorrect\n" + 1));
+        }        
     }
     else if (cmd[0] == "NICK")
     {
@@ -56,7 +58,9 @@ int request(Server &server, int fd, vector<std::string> cmd)
     }
     else if (cmd[0] == "QUIT")
     {
+        server.getUsers2().erase(fd);
         close(fd);
     }
+    memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
     return 0;
 }

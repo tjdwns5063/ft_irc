@@ -1,6 +1,6 @@
 #include "../incs/Server.hpp"
 
-Server::Server(int port, std::string password): port(port), password(password) {
+Server::Server(int port, std::string password): port(port), password(password.append("\r")) {
     server_sock = makeServerSock();
     status = 0;
 
@@ -173,4 +173,12 @@ Channel &Server::getChannel(string s)
     if (channels.find(s) == channels.end())
         addChannel(s);
     return channels.find(s)->second;
+}
+
+std::map<int, User>& Server::getUsers2() {
+    return (this->users);
+}
+
+const std::string& Server::getPassword() const {
+    return (this->password);
 }
