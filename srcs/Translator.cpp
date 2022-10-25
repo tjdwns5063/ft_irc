@@ -25,3 +25,36 @@ std::string Translator::translate(std::string& msg) {
     // std::string substr = msg.substr(0, len);
     // users.find()
 }
+
+
+string get_cmd(string s)
+{
+    int cmd_len = -1;
+    string ret = "";
+    while (s[++cmd_len] != ' ')
+        ;
+    int i = -1;
+    while (++i < cmd_len)
+        ret += s[i];
+    return ret;
+}
+
+void request(int fd, string cmd, string s)
+{
+    if (cmd == "CAP")
+        write(fd, ":aaa 001 aaa\n", strlen(":aaa 001 aaa\n"));
+    else if (cmd == "JOIN") // channel join
+        ;
+    else if (cmd == "PRIVMSG") // send msg
+    {
+
+    }
+    else if (cmd == "LEAVE" || cmd == "PART") // leave channel
+    {
+
+    }
+    else if (cmd == "QUIT")
+    {
+        disconnect(fd);
+    }
+}
