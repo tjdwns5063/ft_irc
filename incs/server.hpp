@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "User.hpp"
 #include "Translator.hpp"
+
 using namespace std;
 
 class Server {
@@ -44,6 +45,8 @@ public:
     int connectClient();
     int checkEvent(int newEvent);
     User &getUser(int n);
+    std::map<int, User>& getUsers();
+    const std::string& getPassword() const;
 };
 
 vector<string> split(string input, char delimiter);

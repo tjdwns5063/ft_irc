@@ -1,6 +1,6 @@
 #include "../incs/Server.hpp"
 
-Server::Server(int port, std::string password): port(port), password(password) {
+Server::Server(int port, std::string password): port(port), password(password.append("\r")) {
     server_sock = makeServerSock();
     status = 0;
 
@@ -153,6 +153,13 @@ int Server::makeServerSock() {
     return server_sock;
 }
 
+const std::string& Server::getPassword() const {
+    return (this->password);
+}
+
+std::map<int, User>& Server::getUsers() {
+    return (this->users);
+}
 
 User& Server::getUser(int n)
 {
