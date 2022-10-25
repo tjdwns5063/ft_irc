@@ -1,4 +1,4 @@
-#include "../incs/server.hpp"
+#include "../incs/Server.hpp"
 
 Server::Server(int port, std::string password): port(port), password(password) {
     memset(buf, 0, sizeof(buf));
@@ -72,6 +72,7 @@ int Server::connectClient()
     addEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     return 0;
 }
+
 int Server::errorFlagLogic(struct kevent* currEvent) {
     status = -1;
     if (currEvent->ident == server_sock) {
@@ -89,16 +90,6 @@ void Server::addEvents(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t
 
     EV_SET(&temp, ident, filter, flags, fflags, data, udata);
     changed.push_back(temp);
-}
-
-int Server::errorFlagLogic(struct kevent* currEvent) {
-    status = -1;
-    if (currEvent->ident == server_sock) {
-        std::cerr << "server socket error\n";
-        return -1;
-    }
-    std::cerr << "client socket error\n";
-    return -1;
 }
 
 int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
@@ -168,6 +159,7 @@ int Server::makeServerSock() {
     }
     return server_sock;
 }
+
 User& Server::getUser(int n)
 {
     return users[n];
