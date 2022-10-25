@@ -1,6 +1,8 @@
 #include "User.hpp"
 
-User::User() {}
+User::User(): fd(-1), userName(""), nickName(""), op(0) {}
+
+User::User(int fd): fd(fd), userName(""), nickName(""), op(0) {}
 
 User::User(int fd, std::string userName, std::string nickName, bool op)
     : fd(fd), userName(userName), nickName(nickName), op(op) {}
