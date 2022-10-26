@@ -1,6 +1,6 @@
 #include "../incs/Server.hpp"
 
-Server::Server(int port, std::string password): port(port), password(password.append("\r")) {
+Server::Server(int port, std::string password): port(port), password(password) {
     server_sock = makeServerSock();
     status = 0;
 
