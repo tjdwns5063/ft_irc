@@ -28,4 +28,6 @@ public:
     void setOp(bool op);
 };
 
+bool operator==(const User& lhs, const User& rhs);
+
 #endif

@@ -23,3 +23,21 @@ const std::vector<User> &Channel::getUsers() {
 void Channel::addUser(User &user) {
     users.push_back(user);
 }
+
+std::vector<User>::iterator Channel::searchUser(std::string& userName) {
+    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
+        if (it->getUserName() == userName) {
+            return it;
+        }
+    }
+    return users.end();
+}
+
+bool Channel::removeUser(std::string& userName) {
+    std::vector<User>::iterator pos = searchUser(userName);
+    if (pos != users.end()) {
+        users.erase(pos);
+        return true;
+    }
+    return false;
+}

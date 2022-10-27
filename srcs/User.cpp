@@ -64,3 +64,10 @@ void User::setNickName(std::string nickName) {
 void User::setOp(bool op) {
     this->op = op;
 }
+
+bool operator==(const User& lhs, const User& rhs) {
+    return lhs.getFd() == rhs.getFd() &&
+        lhs.getNickName() == rhs.getNickName() &&
+        lhs.getOp() == rhs.getOp() &&
+        lhs.getUserName() == rhs.getUserName();
+}
