@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include "User.hpp"
+#include <iostream>
 
 class Channel {
 private:
@@ -17,7 +18,9 @@ public:
     Channel(const Channel& channel);
     Channel& operator=(const Channel& channel);
     void addUser(User &user);
-    const std::vector<User> &getUsers();
+    void deleteUser(User &user);
+    std::vector<User> &getUsers();
+    int chkUser(int fd);
 };
 
 #endif

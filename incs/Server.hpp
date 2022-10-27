@@ -46,7 +46,7 @@ public:
     int connectClient();
     int checkEvent(int newEvent);
     User &getUser(int n);
-    std::map<int, User>& getUsers2();
+    std::map<int, User>& getUsers();
     const std::string& getPassword() const;
     void addChannel(string s);
     std::map<string, Channel> &getChannels();

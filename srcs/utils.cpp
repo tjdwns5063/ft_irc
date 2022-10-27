@@ -11,7 +11,7 @@ vector<string> split(string input, char delimiter) {
     string temp;
  
     while (getline(ss, temp, delimiter)) {
-        if (temp[temp.length() - 1] == '\r')
+        while (temp[temp.length() - 1] == '\r' || temp[temp.length() - 1] == '\n')
             temp.erase(temp.length() - 1);
         answer.push_back(temp);
     }
