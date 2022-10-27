@@ -159,8 +159,9 @@ User& Server::getUser(int n)
 
 void Server::addChannel(string s)
 {
-    channels.insert(pair<std::string, Channel>(s, Channel()));
-    // channels[s] = Channel();
+    // channels.insert(pair<std::string, Channel>(s, Channel()));
+    channels[s] = Channel();
+    std::cout << "make channel" << std::endl;
 }
 
 std::map<string, Channel> &Server::getChannels()

@@ -17,6 +17,12 @@ Channel& Channel::operator=(const Channel& channel) {
     return *this;
 }
 
+int Channel::operator==(const Channel& channel) {
+    if (this == &channel)
+        return 1;
+    return 0;
+}
+
 std::vector<User> &Channel::getUsers() {
     return users;
 }

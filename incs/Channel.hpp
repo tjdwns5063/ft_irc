@@ -7,6 +7,7 @@
 #include "User.hpp"
 #include <iostream>
 
+class User;
 class Channel {
 private:
     std::vector<User> users;
@@ -17,6 +18,7 @@ public:
     ~Channel();
     Channel(const Channel& channel);
     Channel& operator=(const Channel& channel);
+    int operator==(const Channel& channel);
     void addUser(User &user);
     void deleteUser(User &user);
     std::vector<User> &getUsers();

@@ -64,3 +64,18 @@ void User::setNickName(std::string nickName) {
 void User::setOp(bool op) {
     this->op = op;
 }
+
+std::vector<Channel> &User::getChannels() {
+    return channels;
+}
+
+void User::addChannel(Channel &channel) {
+    channels.push_back(channel);
+}
+
+void User::leaveChannel(Channel &channel) {
+    std::vector<Channel>::iterator it;
+    for (it = channels.begin(); it != channels.end(); it++)
+        ;
+    channels.erase(it);
+}
