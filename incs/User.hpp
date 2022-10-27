@@ -1,13 +1,15 @@
 #ifndef USER_HPP
 # define USER_HPP
+#include "Channel.hpp"
 
-#include <string>
+class Channel;
 
 class User {
 private:
     int fd;
     std::string userName;
     std::string nickName;
+    std::vector<Channel> channels;
     bool op;
     char *buf;
 
@@ -26,6 +28,9 @@ public:
     void setUserName(std::string userName);
     void setNickName(std::string nickName);
     void setOp(bool op);
+    std::vector<Channel> &getChannels();
+    void addChannel(Channel &channel);
+    void leaveChannel(Channel &channel);
 };
 
 bool operator==(const User& lhs, const User& rhs);

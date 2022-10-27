@@ -62,7 +62,7 @@ int Server::checkEvent(int newEvent) {
         }
         for (int j = 0; j < s.size(); j++)
         {
-            if (request(*this, readFds.front(), split(s[j], ' ')))
+            if (request(*this, readFds.front(), s[j]))
                 return -1;
         }
         memset(users[readFds.front()].getBuf(), 0, sizeof(char) * 1024);
@@ -159,8 +159,9 @@ User& Server::getUser(int n)
 
 void Server::addChannel(string s)
 {
-    channels.insert(pair<std::string, Channel>(s, Channel()));
-    // channels[s] = Channel();
+    // channels.insert(pair<std::string, Channel>(s, Channel()));
+    channels[s] = Channel();
+    std::cout << "make channel" << std::endl;
 }
 
 std::map<string, Channel> &Server::getChannels()
@@ -175,7 +176,7 @@ Channel &Server::getChannel(string s)
     return channels.find(s)->second;
 }
 
-std::map<int, User>& Server::getUsers2() {
+std::map<int, User>& Server::getUsers() {
     return (this->users);
 }
 

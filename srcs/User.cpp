@@ -71,3 +71,18 @@ bool operator==(const User& lhs, const User& rhs) {
         lhs.getOp() == rhs.getOp() &&
         lhs.getUserName() == rhs.getUserName();
 }
+
+std::vector<Channel> &User::getChannels() {
+    return channels;
+}
+
+void User::addChannel(Channel &channel) {
+    channels.push_back(channel);
+}
+
+void User::leaveChannel(Channel &channel) {
+    std::vector<Channel>::iterator it;
+    for (it = channels.begin(); it != channels.end(); it++)
+        ;
+    channels.erase(it);
+}
