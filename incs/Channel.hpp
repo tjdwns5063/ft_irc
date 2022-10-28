@@ -18,7 +18,7 @@ public:
     ~Channel();
     Channel(const Channel& channel);
     Channel& operator=(const Channel& channel);
-    std::vector<User>::iterator searchUser(std::string& userName);
+    std::vector<User>::iterator searchUser(const std::string& userName);
     // void addUser(User &user);
     bool removeUser(std::string& userName);
     // const std::vector<User> &getUsers() const;

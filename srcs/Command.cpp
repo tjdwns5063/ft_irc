@@ -1,6 +1,6 @@
 #include "Command.hpp"
 
-void send_all(Server &server, string s)
+void send_all(Server &server, std::string s)
 {
 	std::map<int, User> &users = server.getUsers();
 
@@ -10,7 +10,7 @@ void send_all(Server &server, string s)
 	}
 }
 
-void send_allChannel(User &user, string s)
+void send_allChannel(User &user, std::string s)
 {
     std::vector<Channel> &channels = user.getChannels();
 
@@ -24,7 +24,7 @@ void send_allChannel(User &user, string s)
     }
 }
 
-void send_channel(Channel &channel, User *user, string s)
+void send_channel(Channel &channel, User *user, std::string s)
 {
     if (!user)
     {
@@ -42,8 +42,17 @@ void send_channel(Channel &channel, User *user, string s)
             write(it->getFd(), s.c_str(), s.length());
         }
     }
-
 }
+
+void send_channel_all(Channel &channel, std::string s)
+{
+    vector<User>& users = channel.getUsers();
+
+    for (int i = 0; i < users.size(); ++i) {
+        write(users[i].getFd(), s.c_str(), s.length());
+    }
+}
+
 
 void cmd_pass(Server &server, int fd, std::vector<std::string> cmd)
 {
@@ -132,4 +141,9 @@ void cmd_quit(Server &server, int fd)
 {
     server.getUsers().erase(fd);
     close(fd);
+}
+
+void cmd_kick(std::string& message)
+{
+    
 }

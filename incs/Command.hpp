@@ -6,6 +6,11 @@
 
 class Server;
 
+void send_all(Server &server, std::string s);
+void send_allChannel(User &user, std::string s);
+void send_channel(Channel &channel, User *user, std::string s);
+void send_channel_all(Channel &channel, std::string s);
+
 void cmd_pass(Server &server, int fd, std::vector<std::string> cmd);
 void cmd_nick(Server &server, int fd, std::string s, std::vector<std::string> cmd);
 

@@ -31,9 +31,9 @@ void Channel::addUser(User &user) {
     users.push_back(user);
 }
 
-std::vector<User>::iterator Channel::searchUser(std::string& userName) {
+std::vector<User>::iterator Channel::searchUser(const std::string& nickName) {
     for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
-        if (it->getUserName() == userName) {
+        if (it->getNickName() == nickName) {
             return it;
         }
     }
