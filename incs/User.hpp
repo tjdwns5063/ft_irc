@@ -33,4 +33,6 @@ public:
     void leaveChannel(Channel &channel);
 };
 
+bool operator==(const User& lhs, const User& rhs);
+
 #endif
