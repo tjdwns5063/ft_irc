@@ -129,18 +129,18 @@ int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
 int Server::writeFlagLogic(struct kevent* currEvent, int& writeFlag) {
     std::cout << currEvent->ident << "curr_event: write\n";
     // if (send(currEvent->ident, users[currEvent->ident].getBuf(), strlen(users[currEvent->ident].getBuf()) + 1, 0) == -1) {
-    //     std::cerr << "write error\n";
-    //     status = -1;
-    //     return -1;
+        // std::cerr << "write error\n";
+        // status = -1;
+        // return -1;
     // }
     int len = strlen(users[currEvent->ident].getBuf());
-    // std::cout << "len:  " << len << "|" << users[currEvent->ident].getBuf() << std::endl;
-    if (len > 0)
-        write(currEvent->ident, users[currEvent->ident].getBuf(), len);
+    if (len > 0 && write(currEvent->ident, users[currEvent->ident].getBuf(), len) < 0) {
+        std::cerr << "write error\n";
+        status = -1;
+        return -1;
+    }
     memset(users[currEvent->ident].getBuf(), 0, BUF_SIZE);
     addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-    // for (std::map<int, User>::iterator it = users.begin(); it != users.end(); it++)
-    //     addEvents(it->second.getFd(), EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     return 1;
 }
 
@@ -165,10 +165,15 @@ User& Server::getUser(int n)
     return users[n];
 }
 
+void Server::removeUser(int fd)
+{
+    users.erase(fd);
+}
+
 void Server::addChannel(string s)
 {
     // channels.insert(pair<std::string, Channel>(s, Channel()));
-    channels[s] = Channel();
+    channels[s] = Channel(s);
     std::cout << "make channel" << std::endl;
 }
 

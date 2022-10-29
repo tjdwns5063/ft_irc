@@ -52,6 +52,7 @@ public:
     void addChannel(string s);
     std::map<string, Channel> &getChannels();
     Channel &getChannel(string s);
+    void removeUser(int fd);
 };
 
 vector<string> split(string input, char delimiter);

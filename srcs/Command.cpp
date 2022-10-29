@@ -31,26 +31,23 @@ void send_allChannel(Server &server, User &user, string s)
 // void send_channel(Server &server, Channel &channel, User *user, string s)
 void send_channel(Server &server, Channel &channel, string s)
 {
-    // if (!user)
+    for (std::vector<User>::iterator it = channel.getUsers().begin(); it != channel.getUsers().end(); it++)
     {
-        for (std::vector<User>::iterator it = channel.getUsers().begin(); it != channel.getUsers().end(); it++)
-        {
-            server.getUser(it->getFd()).setBuf(s);
-            // write(it->getFd(), s.c_str(), s.length());
-            server.addEvents(it->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
-        }
+        server.getUser(it->getFd()).setBuf(s);
+        // write(it->getFd(), s.c_str(), s.length());
+        server.addEvents(it->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
-    // else
-    // {
-    //     for (std::vector<User>::iterator it = channel.getUsers().begin(); it != channel.getUsers().end(); it++)
-    //     {
-    //         if (it->getFd() == user->getFd())
-    //             continue ;
-    //         server.getUser(it->getFd()).setBuf(s);
-    //         server.addEvents(it->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
-    //     }
-    // }
+}
 
+void send_excludeme(Server &server, Channel &channel, User &user, string s)
+{
+    for (std::vector<User>::iterator it = channel.getUsers().begin(); it != channel.getUsers().end(); it++)
+    {
+        if (it->getFd() == user.getFd())
+            continue ;
+        server.getUser(it->getFd()).setBuf(s);
+        server.addEvents(it->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+    }
 }
 
 void cmd_pass(Server &server, int fd, std::vector<std::string> cmd)
@@ -85,7 +82,7 @@ void cmd_user(Server &server, int fd, std::string s, std::vector<std::string> cm
         return ;
     server.getUser(fd).setUserName(cmd[1] + "@" + cmd[3]);
     std::cout << "username : " << server.getUser(fd).getUserName() << std::endl;
-    s = ":" + server.getUser(fd).getNickName() + " 001 " + server.getUser(fd).getUserName() + "\n";
+    s = ":" + server.getUser(fd).getNickName() + " 001 " + server.getUser(fd).getNickName() + "\n";
     // s = ":001 " + server.getUser(fd).getNickName() + "\n";
     server.getUser(fd).setBuf(s);
 
@@ -129,7 +126,7 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
             return ;
         }
         // send_channel(server, channel, &user, s);
-        send_channel(server, channel, s);
+        send_excludeme(server, channel, user, s);
     }
     else
     {
@@ -144,16 +141,22 @@ void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cm
     if (cmd.size() < 2)
         translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
     Channel &channel = server.getChannel(cmd[1]);
-    s = ":" + server.getUser(fd).getNickName() + "!" + server.getUser(fd).getUserName() + " " + s + "\n"; 
+    User &user = server.getUser(fd);
+    s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s + "\n"; 
     std::cout << s << std::endl;
     send_channel(server, channel, s);
-    channel.removeUser(server.getUser(fd));
-    server.getUser(fd).leaveChannel(channel);
-    // send_channel(server, channel, &server.getUser(fd), s);
+    user.leaveChannel(channel);
+    channel.removeUser(user);
 }
 
 void cmd_quit(Server &server, int fd)
 {
-    server.getUsers().erase(fd);
+    User &user = server.getUser(fd);
+    map<string, Channel> &Channels = server.getChannels();
+    for (map<string, Channel>::iterator it = Channels.begin(); it != Channels.end(); it++)
+    {
+        it->second.removeUser(user);
+    }
+    server.removeUser(fd);
     close(fd);
 }

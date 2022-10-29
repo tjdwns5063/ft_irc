@@ -15,6 +15,8 @@ vector<string> split(string input, char delimiter) {
             temp.erase(temp.begin());
         while (temp[temp.length() - 1] == '\r' || temp[temp.length() - 1] == '\n')
             temp.erase(temp.length() - 1);
+        if (temp.length() == 0)
+            continue ;
         answer.push_back(temp);
     }
  
