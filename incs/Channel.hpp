@@ -24,9 +24,9 @@ public:
     // const std::vector<User> &getUsers() const;
     int operator==(const Channel& channel);
     void addUser(User &user);
-    void deleteUser(User &user);
+    void removeUser(User &user);
     std::vector<User> &getUsers();
-    int chkUser(int fd);
+    bool chkUser(int fd);
 };
 
 #endif

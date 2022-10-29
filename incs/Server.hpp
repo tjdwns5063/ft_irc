@@ -16,6 +16,7 @@
 #include "Channel.hpp"
 using namespace std;
 
+#define BUF_SIZE 4096
 class Server {
 private:
     int status;

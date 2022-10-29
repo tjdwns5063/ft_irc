@@ -41,9 +41,9 @@ int Server::checkEvent(int newEvent) {
 
     for (int i = 0; i < newEvent; ++i) {
         currEvent = &event_list[i];
-        if (currEvent->flags & EV_ERROR) {
-            errorFlagLogic(currEvent);
-        }
+        // if (currEvent->flags & EV_ERROR) {
+        //     errorFlagLogic(currEvent);
+        // }
         if (currEvent->filter == EVFILT_READ) {
             readFlagLogic(currEvent, writeFlag);
         }
@@ -65,7 +65,7 @@ int Server::checkEvent(int newEvent) {
             if (request(*this, readFds.front(), s[j]))
                 return -1;
         }
-        memset(users[readFds.front()].getBuf(), 0, sizeof(char) * 1024);
+        // memset(users[readFds.front()].getBuf(), 0, sizeof(char) * 1024);
         readFds.pop();
     }
     return 0;
@@ -104,6 +104,7 @@ int Server::errorFlagLogic(struct kevent* currEvent) {
 }
 
 int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
+    std::cout << currEvent->ident << "curr_event: read\n";
     if (currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
         if (connectClient() < 0) {
             status = -1;
@@ -119,20 +120,27 @@ int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
         }
         std::cout << users[currEvent->ident].getBuf() <<std::endl;
         readFds.push(currEvent->ident);
-        // addEvents(currEvent->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+        // for (std::map<int, User>::iterator it = users.begin(); it != users.end(); it++)
+        //     addEvents(it->second.getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
     return 0;
 }
 
 int Server::writeFlagLogic(struct kevent* currEvent, int& writeFlag) {
-    std::cout << "curr_event: write\n";
+    std::cout << currEvent->ident << "curr_event: write\n";
     // if (send(currEvent->ident, users[currEvent->ident].getBuf(), strlen(users[currEvent->ident].getBuf()) + 1, 0) == -1) {
     //     std::cerr << "write error\n";
     //     status = -1;
     //     return -1;
     // }
-    memset(users[currEvent->ident].getBuf(), 0, sizeof(char) * 1024);
+    int len = strlen(users[currEvent->ident].getBuf());
+    // std::cout << "len:  " << len << "|" << users[currEvent->ident].getBuf() << std::endl;
+    if (len > 0)
+        write(currEvent->ident, users[currEvent->ident].getBuf(), len);
+    memset(users[currEvent->ident].getBuf(), 0, BUF_SIZE);
     addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    // for (std::map<int, User>::iterator it = users.begin(); it != users.end(); it++)
+    //     addEvents(it->second.getFd(), EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     return 1;
 }
 

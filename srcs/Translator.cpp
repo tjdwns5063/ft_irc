@@ -1,6 +1,6 @@
 #include "Translator.hpp"
 
-std::string translateResult(const std::string& nickName, ResultCode result, vector<std::string> cmd) {
+std::string translateResult(const std::string& nickName, ResultCode result, std::vector<std::string> cmd) {
     // :scarlet.irc.ozinger.org 001 seongjki :Welcome to the Ozinger IRC Network seongjki!seongjki@121.135.181.35
     // <network name> <number reply> <nickname> <:message>
     std::string message;
@@ -19,6 +19,9 @@ std::string translateResult(const std::string& nickName, ResultCode result, vect
         message = ":localhost 403 " + nickName + " " + cmd[1] + " :No such channel\n";
         break ;
     
+    case ERR_CANNOTSENDTOCHAN:
+        message = ":localhost 404 " + nickName + " " + cmd[1] + " :Cannot send to channel\n";
+
     case ERR_ERRONEUSNICKNAME:
         message = ":localhost 432 " + nickName + "  " + cmd[1] + " :Erroneus nickname\n";
         break ;
@@ -58,7 +61,7 @@ std::string translateResult(const std::string& nickName, ResultCode result, vect
     default:
         break ;
     }
-    std::cout << "message: " << message << "\n";
+    // std::cout << "asdfmessage: " << message << "\n";
     return message;
 }
 
@@ -137,10 +140,9 @@ int makeKickMessage(Server& server, vector<string> cmd, int fd) {
 
 int request(Server &server, int fd, std::string s)
 {
-    int n = 0;
     vector<std::string> cmd = split(s, ' ');
 
-    translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
+    // translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
     for (int i = 0 ; i < (int)cmd.size(); i++)
     {
         std::cout << "cmd" << i << ": " << cmd[i] << std::endl;
@@ -173,7 +175,10 @@ int request(Server &server, int fd, std::string s)
     {
         cmd_quit(server, fd);
     }
-    memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
+    else {
+       memset(server.getUser(fd).getBuf(), 0, BUF_SIZE);
+    }
+    // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
     return 0;
 }
 

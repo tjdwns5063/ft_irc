@@ -2,7 +2,7 @@
 # define COMMAND_HPP
 
 #include "Server.hpp"
-#include "User.hpp"
+// #include "User.hpp"
 
 class Server;
 
@@ -15,5 +15,6 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
 
 void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cmd);
 void cmd_quit(Server &server, int fd);
+
 
 #endif

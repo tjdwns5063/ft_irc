@@ -48,7 +48,7 @@ bool Channel::removeUser(std::string& userName) {
     }
     return false;
 }
-void Channel::deleteUser(User &user) {
+void Channel::removeUser(User &user) {
 	for (std::vector<User>::iterator it = users.begin(); it != users.end(); it++)
 	{
 		if (it->getFd() == user.getFd())
@@ -60,7 +60,7 @@ void Channel::deleteUser(User &user) {
 	}
 }
 
-int Channel::chkUser(int fd)
+bool Channel::chkUser(int fd)
 {
 	for (std::vector<User>::iterator it = users.begin(); it != users.end(); it++)
 	{
