@@ -166,6 +166,15 @@ User& Server::getUser(int n)
     return users[n];
 }
 
+User& Server::getUser(std::string& nick) {
+    map<int, User>::iterator it = users.begin();
+    for (; it != users.end(); ++it) {
+        if (it->second.getNickName() == nick)
+            return it->second;
+    }
+    return it->second;
+}
+
 void Server::removeUser(int fd)
 {
     users.erase(fd);

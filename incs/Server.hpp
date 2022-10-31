@@ -47,6 +47,7 @@ public:
     int connectClient();
     int checkEvent(int newEvent);
     User &getUser(int n);
+    User &getUser(std::string& nick);
     std::map<int, User>& getUsers();
     const std::string& getPassword() const;
     void addChannel(string s);
