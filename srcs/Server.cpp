@@ -34,6 +34,15 @@ void Server::run() {
     }
 }
 
+static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
+    int currFd = readFds.front();
+        char* buf = server.getUser(currFd).getBuf();
+
+    if (strchr(buf, '\n'))
+        return true ;
+    return false ;
+}
+
 int Server::checkEvent(int newEvent) {
     struct kevent* currEvent;
     int writeFlag = 0;
@@ -51,9 +60,8 @@ int Server::checkEvent(int newEvent) {
             writeFlagLogic(currEvent, writeFlag);
         }
     }
-    while (!readFds.empty()) {
+    while (!readFds.empty() && checkSpaceInBuf(*this, readFds)) {
         // 파싱하고 명령어에 따라 해당 클라이언트만 등록하거나 모두 등록하거나
-
         std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
         for (int j = 0; j < s.size(); j++)
         {
