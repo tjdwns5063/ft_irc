@@ -71,7 +71,7 @@ void cmd_user(Server &server, int fd, std::string s, std::vector<std::string> cm
         send(fd, s.c_str(), s.length(), 0);
         return ;
     }
-    if (user.getUserName().empty())
+    if (!user.getUserName().empty())
         return ;
     map<int, User>::iterator it;
     for (it = server.getUsers().begin(); it != server.getUsers().end(); it++)
