@@ -13,7 +13,6 @@ class Channel {
 private:
     std::string name;
     std::vector<User> users;
-    std::vector<User> op;
 public:
     // Channel(std::string channelName, User user);
     Channel();
