@@ -135,17 +135,22 @@ int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
 int Server::writeFlagLogic(struct kevent* currEvent, int& writeFlag) {
     std::cout << currEvent->ident << "curr_event: write\n";
     int len = strlen(users[currEvent->ident].getBuf());
+    char* buf = users[currEvent->ident].getBuf();
 
     if (len > 0) {
-        if (write(currEvent->ident, users[currEvent->ident].getBuf(), len) < 0)
+        if (write(currEvent->ident, buf, len) < 0)
         {
             std::cerr << "write error\n";
             status = -1;
             return -1;
         }
-        std::cout << "\twrited: " << users[currEvent->ident].getBuf() << std::endl;
+        std::cout << "\twrited: " << buf << std::endl;
     }
-    memset(users[currEvent->ident].getBuf(), 0, BUF_SIZE);
+    std::vector<std::string> cmd = split(string(buf), ' ');
+    std::cout << "cmd: " << cmd[1] << '\n';
+    if (cmd[1] == "KILL")
+        close(currEvent->ident);
+    memset(buf, 0, BUF_SIZE);
     addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     return 1;
 }

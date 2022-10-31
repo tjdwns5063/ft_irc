@@ -151,12 +151,14 @@ void cmd_quit(Server &server, int fd)
 {
     User &user = server.getUser(fd);
     map<string, Channel> &Channels = server.getChannels();
+    std::string message = ":localhost QUIT :Quit Bye Bye\n";
+    send(fd, message.c_str(), message.length(), 0);
     for (map<string, Channel>::iterator it = Channels.begin(); it != Channels.end(); it++)
     {
         it->second.removeUser(user);
     }
     server.removeUser(fd);
-    close(fd);
+    // close(fd);
 }
 
 std::pair<std::string, ResultCode> makeKickMessage(Server& server, vector<string> cmd, int fd) {
@@ -260,4 +262,34 @@ void cmd_oper(Server &server, int fd, std::vector<std::string>& cmd) {
     // std::cout << "targetFd: " << targetFd << '\n';
     // std::cout << "string: " << message.first;
     send(targetFd, message.first.c_str(), message.first.length(), 0);
+}
+
+std::pair<std::string, ResultCode> makeKillMessage(Server& server, vector<string> cmd, int fd) {
+    std::string message;
+    User& user = server.getUser(fd);
+
+    if (cmd.size() < 2) {
+        return make_pair(translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd), ERR_NEEDMOREPARAMS);
+    } else if (cmd[1] != server.getUser(cmd[1]).getNickName()) {
+        return make_pair(translateResult(user.getNickName(), ERR_NOSUCHNICK, cmd), ERR_NOSUCHNICK);
+    } else if (!user.getOp()) {
+        return make_pair(translateResult(user.getNickName(), ERR_NOPRIVILEGES, cmd), ERR_NOPRIVILEGES);
+    }
+    // user.setOp(true);
+    message = ":" + user.getNickName() + " KILL " + cmd[1] + " :" + user.getNickName() + "\n";
+    return make_pair(message, DEFAULT);
+}
+
+void cmd_kill(Server &server, int fd, std::vector<std::string>& cmd) {
+    std::pair<std::string, ResultCode> message = makeKillMessage(server, cmd, fd);
+    int targetFd;
+
+    std::cout << message.first << '\n';
+    if (message.second == DEFAULT) {
+        targetFd = server.getUser(cmd[1]).getFd();
+        server.removeUser(targetFd);
+        send(targetFd, message.first.c_str(), message.first.length(), 0);
+    }  else {
+        send(fd, message.first.c_str(), message.first.length(),  0);
+    }
 }
