@@ -34,6 +34,15 @@ void Server::run() {
     }
 }
 
+static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
+     int currFd = readFds.front();
+         char* buf = server.getUser(currFd).getBuf();
+
+     if (strchr(buf, '\n'))
+         return true ;
+     return false ;
+ }
+
 int Server::checkEvent(int newEvent) {
     struct kevent* currEvent;
 
@@ -50,7 +59,7 @@ int Server::checkEvent(int newEvent) {
             writeFlagLogic(currEvent);
         }
     }
-    while (!readFds.empty()) {
+    while (!readFds.empty() && checkSpaceInBuf(*this, readFds)) {
         std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
         for (int j = 0; j < (int)s.size(); j++)
         {
@@ -96,14 +105,14 @@ int Server::errorFlagLogic(struct kevent* currEvent) {
 }
 
 int Server::readFlagLogic(struct kevent* currEvent) {
-    char buf[BUF_SIZE];
+    char* buf = users[currEvent->ident].getBuf();
     if ((int) currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
         if (connectClient() < 0) {
             status = -1;
             return -1;
         }
     } else { //client_socket에서 event가 발생했을 때
-        int len = recv(currEvent->ident, buf, BUF_SIZE, 0);
+        int len = recv(currEvent->ident, buf + strlen(buf), BUF_SIZE, 0);
         if (len <= 0) {
             std::cerr << "receive error\n";
             close(currEvent->ident);
