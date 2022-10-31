@@ -48,9 +48,13 @@ void send_excludeme(Server &server, Channel &channel, User &user, string s)
 
 void cmd_nick(Server &server, int fd, std::string s, std::vector<std::string> cmd)
 {
-    if (cmd.size() < 2)
-        translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
     User &user = server.getUser(fd);
+    if (cmd.size() < 2)
+    {
+        s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send(fd, s.c_str(), s.length(), 0);
+        return ;       
+    }
     if (user.getNickName() == cmd[1])
         return ;
     s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s + "\n";
@@ -60,39 +64,64 @@ void cmd_nick(Server &server, int fd, std::string s, std::vector<std::string> cm
 
 void cmd_user(Server &server, int fd, std::string s, std::vector<std::string> cmd)
 {
+    User &user = server.getUser(fd);
     if (cmd.size() < 5)
-        translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
-    if (!server.getUser(fd).getUserName().empty())
+    {
+        s = translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send(fd, s.c_str(), s.length(), 0);
         return ;
-    server.getUser(fd).setUserName(cmd[1] + "@" + cmd[3]);
-    s = ":" + server.getUser(fd).getNickName() + " 001 " + server.getUser(fd).getNickName() + "\n";
-    server.getUser(fd).setBuf(s);
-
-
+    }
+    if (user.getUserName().empty())
+        return ;
+    map<int, User>::iterator it;
+    for (it = server.getUsers().begin(); it != server.getUsers().end(); it++)
+    {
+        if (it->second.getNickName() == cmd[1])
+        {
+            s = translateResult(user.getNickName(), ERR_NOSUCHCHANNEL, cmd);
+            send(fd, s.c_str(), s.length(), 0);
+            return ;
+        }
+    }
+    user.setUserName(cmd[1] + "@" + cmd[3]);
+    s = ":" + user.getNickName() + " 001 " + user.getNickName() + "\n";
+    user.setBuf(s);
     server.addEvents(fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
 }
 
 void cmd_join(Server &server, int fd, std::vector<std::string> cmd)
 {
+    User &user = server.getUser(fd);
+    string s;
     if (cmd.size() < 2)
-        translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
+    {
+        s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send(fd, s.c_str(), s.length(), 0);
+        return ;
+    }
     if (cmd[1].c_str()[0] == '#')
     {
         Channel &channel = server.getChannel(cmd[1]);
-        channel.addUser(server.getUser(fd));
-        server.getUser(fd).addChannel(channel);
+        channel.addUser(user);
+        user.addChannel(channel);
     }
     else {
         // error 403
-        translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHCHANNEL, cmd);
+        s = translateResult(user.getNickName(), ERR_NOSUCHCHANNEL, cmd);
+        send(fd, s.c_str(), s.length(), 0);
+        return ;
     }
 }
 
 void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string> cmd)
 {
-    if (cmd.size() < 3)
-        translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
     User &user = server.getUser(fd);
+    if (cmd.size() < 3)
+    {
+        s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send(fd, s.c_str(), s.length(), 0);
+        return ;
+    }
     s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
     s += "\n";
     if (cmd[1].c_str()[0] == '#')
@@ -101,7 +130,8 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
         if (channel.chkUser(fd) == false)
         {
             //error 404
-            translateResult(user.getNickName(), ERR_CANNOTSENDTOCHAN, cmd);
+            s = translateResult(user.getNickName(), ERR_CANNOTSENDTOCHAN, cmd);
+            send(fd, s.c_str(), s.length(), 0);
             return ;
         }
         send_excludeme(server, channel, user, s);
@@ -119,7 +149,8 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
         }
         if (rcvfd == -1)
         {
-            translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
+            s = translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
+            send(fd, s.c_str(), s.length(), 0);
             return ; 
         }
         User &rcvuser = server.getUser(rcvfd);
@@ -130,10 +161,14 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
 
 void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cmd)
 {
-    if (cmd.size() < 2)
-        translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
-    Channel &channel = server.getChannel(cmd[1]);
     User &user = server.getUser(fd);
+    if (cmd.size() < 2)
+    {
+        s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send(fd, s.c_str(), s.length(), 0);
+        return ;
+    }
+    Channel &channel = server.getChannel(cmd[1]);
     s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s + "\n";
     send_channel(server, channel, s);
     user.leaveChannel(channel);
@@ -176,7 +211,7 @@ std::pair<std::string, ResultCode> makeKickMessage(Server& server, vector<string
             return std::make_pair(translateResult(nickname, ERR_USERNOTINCHANNEL, cmd), ERR_USERNOTINCHANNEL);
         }
     }
-    message = ":" + server.getUser(fd).getNickName() + " KICK " + cmd[1] + " " + cmd[2];
+    message = ":" + user.getNickName() + " KICK " + cmd[1] + " " + cmd[2];
     if (cmd.size() > 3)
         message += (" :" + cmd[2] + "\n");
     else
@@ -187,11 +222,12 @@ std::pair<std::string, ResultCode> makeKickMessage(Server& server, vector<string
 
 void cmd_kick(Server &server, int fd, std::vector<std::string>& cmd)
 {
+    Channel &channel = server.getChannel(cmd[1]);
     pair<std::string, ResultCode> message = makeKickMessage(server, cmd, fd);
     if (message.second == DEFAULT) {
-        send_channel(server, server.getChannel(cmd[1]), message.first.c_str());
-        server.getChannel(cmd[1]).removeUser(cmd[2]);
-        server.getChannel(cmd[1]).searchUser(cmd[2])->leaveChannel(server.getChannel(cmd[1]));
+        send_channel(server, channel, message.first.c_str());
+        channel.removeUser(cmd[2]);
+        channel.searchUser(cmd[2])->leaveChannel(channel);
     } else {
         send(fd, message.first.c_str(), message.first.length(), 0);
     }
@@ -200,16 +236,16 @@ void cmd_kick(Server &server, int fd, std::vector<std::string>& cmd)
 std::pair<std::string, ResultCode> makePassMesaage(Server &server, vector<std::string>& cmd, int& fd) {
     std::string message;
     const std::string& pw = server.getPassword();
-
+    User &user = server.getUser(fd);
     if (cmd.size() < 2) {
-        message = ":localhost 461 " + server.getUser(fd).getNickName() + " :Not enough parameters\n";
+        message = ":localhost 461 " + user.getNickName() + " :Not enough parameters\n";
         return make_pair(message, ERR_NEEDMOREPARAMS);
     } else if (pw != cmd[1]) {
-        message = ":localhost 464 " + server.getUser(fd).getNickName() + " :Password incorrect\n";
+        message = ":localhost 464 " + user.getNickName() + " :Password incorrect\n";
         return make_pair(message, ERR_PASSWDMISMATCH);
     }
     if (server.getUsers().find(fd)->second.getUserName() != "") {
-        message = ":localhost 462 " + server.getUser(fd).getNickName() + " :You may not reregister\n";
+        message = ":localhost 462 " + user.getNickName() + " :You may not reregister\n";
         return make_pair(message, ERR_ALREADYREGISTERED);
     }
     message = ":localhost :Password is Correct\n";
