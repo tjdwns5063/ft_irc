@@ -43,7 +43,19 @@ char* User::getBuf() {
 
 void User::setBuf(std::string s) {
     int i;
+    for (i = 0; i < BUF_SIZE; i++)
+        buf[i] = 0;
     for (i = 0; i < (int) s.length(); i++)
+    {
+        buf[i] = s[i];
+    }
+    buf[i] = '\0';
+}
+
+void User::setBuf(char *s)
+{
+    int i;
+    for (i = 0; i < (int) strlen(s); i++)
     {
         buf[i] = s[i];
     }
