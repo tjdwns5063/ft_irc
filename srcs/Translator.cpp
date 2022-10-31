@@ -62,7 +62,6 @@ std::string translateResult(const std::string& nickName, ResultCode result, std:
     default:
         break ;
     }
-    // std::cout << "asdfmessage: " << message << "\n";
     return message;
 }
 

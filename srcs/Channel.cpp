@@ -58,7 +58,6 @@ void Channel::removeUser(User &user) {
 	{
 		if (it->getFd() == user.getFd())
 		{
-			std::cout << "Delete user\n";
 			users.erase(it);
 			break ;
 		}

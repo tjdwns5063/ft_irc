@@ -33,8 +33,8 @@ private:
 
 private:
     int errorFlagLogic(struct kevent* currEvent);
-    int readFlagLogic(struct kevent* currEvent, int& writeFlag);
-    int writeFlagLogic(struct kevent* currEvent, int& writeFlag);
+    int readFlagLogic(struct kevent* currEvent);
+    int writeFlagLogic(struct kevent* currEvent);
     void handleWriteFlag(int& writeFlag);
 
 public:

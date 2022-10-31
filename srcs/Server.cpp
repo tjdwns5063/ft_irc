@@ -36,33 +36,29 @@ void Server::run() {
 
 int Server::checkEvent(int newEvent) {
     struct kevent* currEvent;
-    int writeFlag = 0;
 
     for (int i = 0; i < newEvent; ++i) {
         currEvent = &event_list[i];
-        // if (currEvent->flags & EV_ERROR) {
-        //     errorFlagLogic(currEvent);
-        // }
+        if (currEvent->flags & EV_ERROR) {
+            errorFlagLogic(currEvent);
+        }
         if (currEvent->filter == EVFILT_READ) {
-            readFlagLogic(currEvent, writeFlag);
+            readFlagLogic(currEvent);
         }
 
         if (currEvent->filter == EVFILT_WRITE) {
-            writeFlagLogic(currEvent, writeFlag);
+            writeFlagLogic(currEvent);
         }
     }
     while (!readFds.empty()) {
-        // 파싱하고 명령어에 따라 해당 클라이언트만 등록하거나 모두 등록하거나
-
         std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
-        for (int j = 0; j < s.size(); j++)
+        for (int j = 0; j < (int)s.size(); j++)
         {
             if (request(*this, readFds.front(), s[j]))
                 return -1;
         }
         while (!s.empty())
             s.pop_back();
-        // memset(users[readFds.front()].getBuf(), 0, sizeof(char) * 1024);
         readFds.pop();
     }
     return 0;
@@ -76,7 +72,6 @@ int Server::connectClient()
         std::cerr << "accept error\n";
         return 1;
     }
-    std::cout << "accept new client: " << client_socket << std::endl;
     users[client_socket] = User(client_socket);
     fcntl(client_socket, F_SETFL, O_NONBLOCK);
     addEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -92,7 +87,7 @@ void Server::addEvents(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t
 
 int Server::errorFlagLogic(struct kevent* currEvent) {
     status = -1;
-    if (currEvent->ident == server_sock) {
+    if ((int) currEvent->ident == server_sock) {
         std::cerr << "server socket error\n";
         return -1;
     }
@@ -100,10 +95,9 @@ int Server::errorFlagLogic(struct kevent* currEvent) {
     return -1;
 }
 
-int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
-    std::cout << currEvent->ident << "curr_event: read\n";
+int Server::readFlagLogic(struct kevent* currEvent) {
     char buf[BUF_SIZE];
-    if (currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
+    if ((int) currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
         if (connectClient() < 0) {
             status = -1;
             return -1;
@@ -121,14 +115,11 @@ int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
         users[currEvent->ident].setBuf(buf);
         std::cout << buf << std::endl;
         readFds.push(currEvent->ident);
-        // for (std::map<int, User>::iterator it = users.begin(); it != users.end(); it++)
-        //     addEvents(it->second.getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
     return 0;
 }
 
-int Server::writeFlagLogic(struct kevent* currEvent, int& writeFlag) {
-    std::cout << currEvent->ident << "curr_event: write\n";
+int Server::writeFlagLogic(struct kevent* currEvent) {
     int len = strlen(users[currEvent->ident].getBuf());
 
     if (len > 0) {
