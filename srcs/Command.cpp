@@ -27,13 +27,11 @@ void send_allChannel(Server &server, User &user, string s)
     }
 }
 
-// void send_channel(Server &server, Channel &channel, User *user, string s)
 void send_channel(Server &server, Channel &channel, string s)
 {
     for (std::vector<User>::iterator it = channel.getUsers().begin(); it != channel.getUsers().end(); it++)
     {
         server.getUser(it->getFd()).setBuf(s);
-        // write(it->getFd(), s.c_str(), s.length());
         server.addEvents(it->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
 }
@@ -101,10 +99,10 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
     if (cmd.size() < 3)
         translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
     User &user = server.getUser(fd);
-    s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
-    s += "\n";
     if (cmd[1].c_str()[0] == '#')
     {
+        s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
+        s += "\n";
         Channel &channel = server.getChannel(cmd[1]);
         std::vector<User> &users = channel.getUsers();
         std::cout << "user size: " << users.size() << std::endl;
@@ -119,9 +117,33 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
     }
     else
     {
-        //401
-        translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
+        int rcvfd = -1;
+        map<int, User>::iterator it;
+        for (it = server.getUsers().begin(); it != server.getUsers().end(); ++it) {
+            if (it->second.getNickName() == cmd[1])
+            {
+                rcvfd = it->second.getFd();
+                break ;
+            }
+        }
+        if (rcvfd == -1)
+        {
+            std::cout << "\tnot find\n";
+            translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
+            return ; 
+        }
+        s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
+        s += "\n";
+        std::cout << "\tfind\n";
+        User &rcvuser = server.getUser(rcvfd);
+        rcvuser.setBuf(s);
+        server.addEvents(rcvfd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
+    // else
+    // {
+    //     //401
+    //     translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
+    // }
 
 }
 

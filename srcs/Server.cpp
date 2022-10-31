@@ -167,8 +167,8 @@ User& Server::getUser(int n)
 }
 
 User& Server::getUser(std::string& nick) {
-    map<int, User>::iterator it = users.begin();
-    for (; it != users.end(); ++it) {
+    map<int, User>::iterator it;
+    for (it = users.begin(); it != users.end(); ++it) {
         if (it->second.getNickName() == nick)
             return it->second;
     }

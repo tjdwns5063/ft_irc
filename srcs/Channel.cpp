@@ -25,12 +25,6 @@ const std::string &Channel::getName() const {
 
 bool Channel::operator==(const Channel& channel) {
     return name == channel.getName();
-    // if (lhs == rhs)
-    // {
-    //     std::cout << "\t\tfind\n";
-    //     return true;
-    // }
-    // return false;
 }
 
 std::vector<User> &Channel::getUsers() {
