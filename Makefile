@@ -1,6 +1,6 @@
 SERVER=server
 CLIENT=client
-FLAG=-Wall -Wextra #-Werror
+FLAG=-Wall -Wextra -g #-Werror
 INCLUDE=-I./incs/
 
 SERVER_SRCS=$(addprefix ./srcs/, Server.cpp User.cpp Channel.cpp main.cpp Translator.cpp utils.cpp Command.cpp)

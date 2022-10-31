@@ -2,10 +2,8 @@
 # define TRANSLATOR_HPP
 
 #include "Server.hpp"
-#include "User.hpp"
-#include "Channel.hpp"
 #include "Command.hpp"
-#include <vector>
+
 class Server;
 
 enum ResultCode {
@@ -15,6 +13,7 @@ enum ResultCode {
 
     ERR_NOSUCHNICK = 401,
     ERR_NOSUCHCHANNEL = 403,
+    ERR_CANNOTSENDTOCHAN = 404,
 
     ERR_ERRONEUSNICKNAME = 432,
     ERR_NICKNAMEINUSE = 433,
@@ -31,5 +30,6 @@ enum ResultCode {
 };
 
 int request(Server &server, int fd, std::string s);
+std::string translateResult(const std::string& nickName, ResultCode result, std::vector<std::string> cmd);
 
 #endif

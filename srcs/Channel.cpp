@@ -4,6 +4,10 @@ Channel::Channel() {}
 
 Channel::~Channel() {}
 
+Channel::Channel(std::string s): name(s) {
+    
+}
+
 Channel::Channel(const Channel& channel) {
     this->users = channel.users;
     this->op = channel.op;
@@ -17,10 +21,18 @@ Channel& Channel::operator=(const Channel& channel) {
     return *this;
 }
 
-int Channel::operator==(const Channel& channel) {
-    if (this == &channel)
-        return 1;
-    return 0;
+const std::string &Channel::getName() const {
+    return name;
+}
+
+bool Channel::operator==(const Channel& channel) {
+    return name == channel.getName();
+    // if (lhs == rhs)
+    // {
+    //     std::cout << "\t\tfind\n";
+    //     return true;
+    // }
+    // return false;
 }
 
 std::vector<User> &Channel::getUsers() {
@@ -48,7 +60,8 @@ bool Channel::removeUser(std::string& userName) {
     }
     return false;
 }
-void Channel::deleteUser(User &user) {
+
+void Channel::removeUser(User &user) {
 	for (std::vector<User>::iterator it = users.begin(); it != users.end(); it++)
 	{
 		if (it->getFd() == user.getFd())
@@ -60,7 +73,7 @@ void Channel::deleteUser(User &user) {
 	}
 }
 
-int Channel::chkUser(int fd)
+bool Channel::chkUser(int fd)
 {
 	for (std::vector<User>::iterator it = users.begin(); it != users.end(); it++)
 	{

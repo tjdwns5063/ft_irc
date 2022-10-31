@@ -16,6 +16,7 @@
 #include "Channel.hpp"
 using namespace std;
 
+#define BUF_SIZE 4096
 class Server {
 private:
     int status;
@@ -46,11 +47,13 @@ public:
     int connectClient();
     int checkEvent(int newEvent);
     User &getUser(int n);
+    User &getUser(std::string& nick);
     std::map<int, User>& getUsers();
     const std::string& getPassword() const;
     void addChannel(string s);
     std::map<string, Channel> &getChannels();
     Channel &getChannel(string s);
+    void removeUser(int fd);
 };
 
 vector<string> split(string input, char delimiter);

@@ -1,21 +1,21 @@
 #include "User.hpp"
 
-User::User(): fd(-1), userName(""), nickName(""), op(0), buf(new char[1024]) {
-    memset(buf, 0, sizeof(char) * 1024);
+User::User(): fd(-1), userName(""), nickName(""), op(0), buf(new char[BUF_SIZE]) {
+    memset(buf, 0, sizeof(char) * BUF_SIZE);
 }
 
-User::User(int fd): fd(fd), userName(""), nickName(""), op(0), buf(new char[1024]) {
-    memset(buf, 0, sizeof(char) * 1024);
+User::User(int fd): fd(fd), userName(""), nickName(""), op(0), buf(new char[BUF_SIZE]) {
+    memset(buf, 0, sizeof(char) * BUF_SIZE);
 }
 
 User::User(int fd, std::string userName, std::string nickName, bool op)
-    : fd(fd), userName(userName), nickName(nickName), op(op), buf(new char[1024]) {
-        memset(buf, 0, sizeof(char) * 1024);
+    : fd(fd), userName(userName), nickName(nickName), op(op), buf(new char[BUF_SIZE]) {
+        memset(buf, 0, sizeof(char) * BUF_SIZE);
     }
 
 User::User(const User& user)
-    : fd(user.fd), userName(user.userName), nickName(user.nickName), op(user.op), buf(new char[1024]) {
-        memset(buf, 0, sizeof(char) * 1024);
+    : fd(user.fd), userName(user.userName), nickName(user.nickName), op(user.op), buf(new char[BUF_SIZE]) {
+        memset(buf, 0, sizeof(char) * BUF_SIZE);
     }
  
 User::~User() {
@@ -39,6 +39,19 @@ int User::getFd() const {
 
 char* User::getBuf() {
     return (this->buf);
+}
+
+void User::setBuf(std::string s) {
+    int i;
+    for (i = 0; i < (int) s.length(); i++)
+    {
+        buf[i] = s[i];
+    }
+    buf[i] = '\0';
+}
+
+void User::clearBuf() {
+    memset(buf, 0, BUF_SIZE);
 }
 
 const std::string User::getUserName() const {
@@ -80,9 +93,34 @@ void User::addChannel(Channel &channel) {
     channels.push_back(channel);
 }
 
+
 void User::leaveChannel(Channel &channel) {
-    std::vector<Channel>::iterator it;
-    for (it = channels.begin(); it != channels.end(); it++)
-        ;
-    channels.erase(it);
+
+    for (int i = 0; i < channels.size(); i++)
+    {
+        if (channels[i] == channel) {
+            channels.erase(channels.begin() + i);
+            std::cout << "\t\tfind\n";
+            return ;
+        }
+    }
+    std::cout << "\t\tcant find\n";
+    // std::vector<Channel>::iterator it = find(channels.begin(), channels.end(), channel);
+    // if (it == channels.end())
+    // {
+    //     std::cout << "\t\tcant find\n";
+    // }
+    // else
+    // {
+    //     std::cout << "\t\tfind\n";
+    //     channels.erase(it);
+    // }
+    // std::cout << "\tchannels size: " << channels.size() << std::endl;
+    // for (it = channels.begin(); it != channels.end(); it++)
+    // {
+    //     if (*it == channel)
+    //         break;
+    // }
+
+    
 }

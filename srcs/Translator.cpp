@@ -1,7 +1,7 @@
 #include "Translator.hpp"
 #include "Command.hpp"
 
-std::string translateResult(const std::string& nickName, ResultCode result, vector<std::string> cmd) {
+std::string translateResult(const std::string& nickName, ResultCode result, std::vector<std::string> cmd) {
     // :scarlet.irc.ozinger.org 001 seongjki :Welcome to the Ozinger IRC Network seongjki!seongjki@121.135.181.35
     // <network name> <number reply> <nickname> <:message>
     std::string message;
@@ -20,6 +20,9 @@ std::string translateResult(const std::string& nickName, ResultCode result, vect
         message = ":localhost 403 " + nickName + " " + cmd[1] + " :No such channel\n";
         break ;
     
+    case ERR_CANNOTSENDTOCHAN:
+        message = ":localhost 404 " + nickName + " " + cmd[1] + " :Cannot send to channel\n";
+
     case ERR_ERRONEUSNICKNAME:
         message = ":localhost 432 " + nickName + "  " + cmd[1] + " :Erroneus nickname\n";
         break ;
@@ -59,79 +62,18 @@ std::string translateResult(const std::string& nickName, ResultCode result, vect
     default:
         break ;
     }
-    std::cout << "message: " << message << "\n";
+    // std::cout << "asdfmessage: " << message << "\n";
     return message;
 }
 
-std::string makePassMesaage(Server &server, vector<std::string>& cmd, int& fd) {
-    std::string message;
-    const std::string& pw = server.getPassword();
 
-    if (cmd.size() < 2) {
-        message = ":localhost 461 " + server.getUser(fd).getNickName() + " :Not enough parameters\n";
-    } else if (pw != cmd[1]) {
-        message = ":localhost 464 " + server.getUser(fd).getNickName() + " :Password incorrect\n";
-    }
-    if (server.getUsers().find(fd)->second.getUserName() != "") {
-        message += ":localhost 462 " + server.getUser(fd).getNickName() + " :You may not reregister\n";
-    }
-    return (message);
-}
 
-std::string makeOperMessage(Server& server, vector<string> cmd, int fd) {
-    std::string message;
-    const std::string& pw = server.getPassword();
-    User& user = server.getUser(fd);
-
-    if (cmd.size() < 3) {
-        message = ":localhost 461 " + user.getNickName() + " :Not enough parameters\n";
-    } else if (pw != cmd[2]) {
-        message = ":localhost 464 " + user.getNickName() + " :Password incorrect\n";
-    } else {
-        message = ":localhost 381 " + user.getNickName() + " :You are now an IRC operator\n";
-        user.setOp(true);
-    }
-    return (message);
-}
-
-std::pair<std::string, ResultCode> makeKickMessage(Server& server, vector<string> cmd, int fd) {
-    std::string message;
-    map<string, Channel>& channels = server.getChannels();
-    User& user = server.getUser(fd);
-    std::string nickname = user.getNickName();
-    map<string, Channel>::iterator targetChannelIter = channels.find(cmd[1]);
-
-    if (cmd.size() < 3) {
-        return std::make_pair(translateResult(nickname, ERR_NEEDMOREPARAMS, cmd), ERR_NEEDMOREPARAMS);
-    } else if (targetChannelIter == channels.end()) {
-        return std::make_pair(translateResult(nickname, ERR_NOSUCHCHANNEL, cmd), ERR_NOSUCHCHANNEL);
-    } else if (!user.getOp()) {
-        return std::make_pair(translateResult(nickname, ERR_CHANOPRIVSNEEDED, cmd), ERR_CHANOPRIVSNEEDED);
-    } else {
-        Channel& targetChannel = targetChannelIter->second;
-        // 내가 그 채널에 있는지
-        if (targetChannel.searchUser(user.getNickName()) == targetChannel.getUsers().end()) {
-            return std::make_pair(translateResult(nickname, ERR_NOTONCHANNEL, cmd), ERR_NOTONCHANNEL);
-        }
-        // target이 그 채널에 있는지
-        if (targetChannel.searchUser(cmd[2]) == targetChannel.getUsers().end()) {
-            return std::make_pair(translateResult(nickname, ERR_USERNOTINCHANNEL, cmd), ERR_USERNOTINCHANNEL);
-        }
-    }
-    message = ":" + server.getUser(fd).getNickName() + " KICK " + cmd[1] + " " + cmd[2];
-    if (cmd.size() > 3)
-        message += (" :" + cmd[2] + "\n");
-    std::cout << "kick message: " << message;
-
-    return std::make_pair(message, DEFAULT);
-}
 
 int request(Server &server, int fd, std::string s)
 {
-    int n = 0;
     vector<std::string> cmd = split(s, ' ');
 
-    translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
+    // translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
     for (int i = 0 ; i < (int)cmd.size(); i++)
     {
         std::cout << "cmd" << i << ": " << cmd[i] << std::endl;
@@ -166,19 +108,13 @@ int request(Server &server, int fd, std::string s)
     }
     else if (cmd[0] == "KICK")
     {
-        pair<std::string, ResultCode> message = makeKickMessage(server, cmd, fd);
-        if (message.second == DEFAULT) {
-            send_channel_all(server.getChannel(cmd[1]), message.first.c_str());
-            server.getChannel(cmd[1]).removeUser(cmd[2]);
-        }
-        else
-            send(fd, message.first.c_str(), message.first.length(), 0);
+        cmd_kick(server, fd, cmd);
     }
     else if (cmd[0] == "OPER")
     {
-        std::string message = makeOperMessage(server, cmd, fd);
-        write(fd, message.c_str(), message.length());
+        cmd_oper(server, fd, cmd);
     }
-    memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
+    // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
     return 0;
 }
+ 

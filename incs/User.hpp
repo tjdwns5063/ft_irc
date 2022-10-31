@@ -2,6 +2,8 @@
 # define USER_HPP
 #include "Channel.hpp"
 
+#define BUF_SIZE 4096
+
 class Channel;
 
 class User {
@@ -22,6 +24,8 @@ public:
     User& operator=(const User& user);
     int getFd() const;
     char* getBuf();
+    void setBuf(std::string s);
+    void clearBuf();
     const std::string getUserName() const;
     const std::string getNickName() const;
     bool getOp() const;
