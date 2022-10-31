@@ -2,6 +2,7 @@
 # define CHANNEL_HPP
 
 #include <string>
+#include <cstring>
 #include <map>
 #include <vector>
 #include "User.hpp"

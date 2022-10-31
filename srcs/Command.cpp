@@ -14,15 +14,16 @@ void send_all(Server &server, string s)
 void send_allChannel(Server &server, User &user, string s)
 {
     std::vector<Channel> &channels = user.getChannels();
-
+    std::cout << "channel size: " << channels.size() << std::endl;
     for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++)
     {
         std::vector<User> &users = it->getUsers();
         for (std::vector<User>::iterator it2 = users.begin(); it2 != users.end(); it2++)
         {
             server.getUser(it2->getFd()).setBuf(s);
-
+            std::cout << "1" << std::endl;
             server.addEvents(it2->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+            std::cout << "2" << std::endl;
             // write(it2->getFd(), s.c_str(), s.length());
         }
     }

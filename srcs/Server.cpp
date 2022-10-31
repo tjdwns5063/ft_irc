@@ -30,7 +30,6 @@ void Server::run() {
     while (1) {
         int newEvent = kevent(kqueue_fd, &changed[0], changed.size(), event_list, 10, NULL);
         changed.clear();
-        std::cout << "newEvent: " << newEvent << '\n';
         checkEvent(newEvent);
     }
 }
@@ -56,15 +55,13 @@ int Server::checkEvent(int newEvent) {
         // 파싱하고 명령어에 따라 해당 클라이언트만 등록하거나 모두 등록하거나
 
         std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
-        for (int j = 0 ; j < s.size(); j++)
-        {
-            std::cout << "s" << j << ": " << s[j] << std::endl;
-        }
         for (int j = 0; j < s.size(); j++)
         {
             if (request(*this, readFds.front(), s[j]))
                 return -1;
         }
+        while (!s.empty())
+            s.pop_back();
         // memset(users[readFds.front()].getBuf(), 0, sizeof(char) * 1024);
         readFds.pop();
     }
@@ -105,20 +102,24 @@ int Server::errorFlagLogic(struct kevent* currEvent) {
 
 int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
     std::cout << currEvent->ident << "curr_event: read\n";
+    char buf[BUF_SIZE];
     if (currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
         if (connectClient() < 0) {
             status = -1;
             return -1;
         }
     } else { //client_socket에서 event가 발생했을 때
-        if (recv(currEvent->ident, users[currEvent->ident].getBuf(), sizeof(char) * 100, 0) <= 0) {
+        int len = recv(currEvent->ident, buf, BUF_SIZE, 0);
+        if (len <= 0) {
             std::cerr << "receive error\n";
             close(currEvent->ident);
             users.erase(currEvent->ident);
             status = -1;
             return -1;
         }
-        std::cout << users[currEvent->ident].getBuf() <<std::endl;
+        buf[len] = '\0';
+        users[currEvent->ident].setBuf(buf);
+        std::cout << buf << std::endl;
         readFds.push(currEvent->ident);
         // for (std::map<int, User>::iterator it = users.begin(); it != users.end(); it++)
         //     addEvents(it->second.getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
@@ -128,16 +129,16 @@ int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
 
 int Server::writeFlagLogic(struct kevent* currEvent, int& writeFlag) {
     std::cout << currEvent->ident << "curr_event: write\n";
-    // if (send(currEvent->ident, users[currEvent->ident].getBuf(), strlen(users[currEvent->ident].getBuf()) + 1, 0) == -1) {
-        // std::cerr << "write error\n";
-        // status = -1;
-        // return -1;
-    // }
     int len = strlen(users[currEvent->ident].getBuf());
-    if (len > 0 && write(currEvent->ident, users[currEvent->ident].getBuf(), len) < 0) {
-        std::cerr << "write error\n";
-        status = -1;
-        return -1;
+
+    if (len > 0) {
+        if (write(currEvent->ident, users[currEvent->ident].getBuf(), len) < 0)
+        {
+            std::cerr << "write error\n";
+            status = -1;
+            return -1;
+        }
+        std::cout << "\twrited: " << users[currEvent->ident].getBuf() << std::endl;
     }
     memset(users[currEvent->ident].getBuf(), 0, BUF_SIZE);
     addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
@@ -174,7 +175,6 @@ void Server::addChannel(string s)
 {
     // channels.insert(pair<std::string, Channel>(s, Channel()));
     channels[s] = Channel(s);
-    std::cout << "make channel" << std::endl;
 }
 
 std::map<string, Channel> &Server::getChannels()

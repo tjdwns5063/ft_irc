@@ -25,6 +25,7 @@ public:
     int getFd() const;
     char* getBuf();
     void setBuf(std::string s);
+    void setBuf(char *s);
     void clearBuf();
     const std::string getUserName() const;
     const std::string getNickName() const;

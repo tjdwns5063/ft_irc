@@ -178,6 +178,8 @@ int request(Server &server, int fd, std::string s)
     else {
        memset(server.getUser(fd).getBuf(), 0, BUF_SIZE);
     }
+    while (!cmd.empty())
+        cmd.pop_back();
     // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
     return 0;
 }
