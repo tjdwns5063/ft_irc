@@ -99,10 +99,10 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
     if (cmd.size() < 3)
         translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
     User &user = server.getUser(fd);
+    s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
+    s += "\n";
     if (cmd[1].c_str()[0] == '#')
     {
-        s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
-        s += "\n";
         Channel &channel = server.getChannel(cmd[1]);
         std::vector<User> &users = channel.getUsers();
         std::cout << "user size: " << users.size() << std::endl;
@@ -112,7 +112,6 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
             translateResult(user.getNickName(), ERR_CANNOTSENDTOCHAN, cmd);
             return ;
         }
-        // send_channel(server, channel, &user, s);
         send_excludeme(server, channel, user, s);
     }
     else
@@ -128,23 +127,13 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
         }
         if (rcvfd == -1)
         {
-            std::cout << "\tnot find\n";
             translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
             return ; 
         }
-        s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
-        s += "\n";
-        std::cout << "\tfind\n";
         User &rcvuser = server.getUser(rcvfd);
         rcvuser.setBuf(s);
         server.addEvents(rcvfd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
-    // else
-    // {
-    //     //401
-    //     translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
-    // }
-
 }
 
 void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cmd)
