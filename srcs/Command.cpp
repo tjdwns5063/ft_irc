@@ -46,13 +46,19 @@ void send_excludeme(Server &server, Channel &channel, User &user, string s)
     }
 }
 
+void send_fd(Server &server, int fd, string s)
+{
+    server.getUser(fd).setBuf(s);
+    server.addEvents(fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+}
+
 void cmd_nick(Server &server, int fd, std::string s, std::vector<std::string> cmd)
 {
     User &user = server.getUser(fd);
     if (cmd.size() < 2)
     {
         s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send(fd, s.c_str(), s.length(), 0);
+        send_fd(server, fd, s);
         return ;       
     }
     if (user.getNickName() == cmd[1])
@@ -68,7 +74,7 @@ void cmd_user(Server &server, int fd, std::string s, std::vector<std::string> cm
     if (cmd.size() < 5)
     {
         s = translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send(fd, s.c_str(), s.length(), 0);
+        send_fd(server, fd, s);
         return ;
     }
     if (!user.getUserName().empty())
@@ -79,7 +85,7 @@ void cmd_user(Server &server, int fd, std::string s, std::vector<std::string> cm
         if (it->second.getNickName() == cmd[1])
         {
             s = translateResult(user.getNickName(), ERR_NOSUCHCHANNEL, cmd);
-            send(fd, s.c_str(), s.length(), 0);
+            send_fd(server, fd, s);
             return ;
         }
     }
@@ -96,7 +102,7 @@ void cmd_join(Server &server, int fd, std::vector<std::string> cmd)
     if (cmd.size() < 2)
     {
         s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send(fd, s.c_str(), s.length(), 0);
+        send_fd(server, fd, s);
         return ;
     }
     if (cmd[1].c_str()[0] == '#')
@@ -108,7 +114,7 @@ void cmd_join(Server &server, int fd, std::vector<std::string> cmd)
     else {
         // error 403
         s = translateResult(user.getNickName(), ERR_NOSUCHCHANNEL, cmd);
-        send(fd, s.c_str(), s.length(), 0);
+        send_fd(server, fd, s);
         return ;
     }
 }
@@ -119,7 +125,7 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
     if (cmd.size() < 3)
     {
         s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send(fd, s.c_str(), s.length(), 0);
+        send_fd(server, fd, s);
         return ;
     }
     s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
@@ -131,7 +137,7 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
         {
             //error 404
             s = translateResult(user.getNickName(), ERR_CANNOTSENDTOCHAN, cmd);
-            send(fd, s.c_str(), s.length(), 0);
+            send_fd(server, fd, s);
             return ;
         }
         send_excludeme(server, channel, user, s);
@@ -150,7 +156,7 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
         if (rcvfd == -1)
         {
             s = translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
-            send(fd, s.c_str(), s.length(), 0);
+            send_fd(server, fd, s);
             return ; 
         }
         User &rcvuser = server.getUser(rcvfd);
@@ -165,7 +171,7 @@ void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cm
     if (cmd.size() < 2)
     {
         s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send(fd, s.c_str(), s.length(), 0);
+        send_fd(server, fd, s);
         return ;
     }
     Channel &channel = server.getChannel(cmd[1]);
@@ -229,7 +235,7 @@ void cmd_kick(Server &server, int fd, std::vector<std::string>& cmd)
         channel.removeUser(cmd[2]);
         channel.searchUser(cmd[2])->leaveChannel(channel);
     } else {
-        send(fd, message.first.c_str(), message.first.length(), 0);
+        send_fd(server, fd, message.first);
     }
 }
 
@@ -273,7 +279,7 @@ void cmd_pass(Server &server, int fd, std::vector<std::string>& cmd) {
     std::pair<std::string, ResultCode> message;
 
     message = makePassMesaage(server, cmd, fd);
-    send(fd, message.first.c_str(), message.first.length(), 0);
+    send_fd(server, fd, message.first);
 }
 
 void cmd_oper(Server &server, int fd, std::vector<std::string>& cmd) {
@@ -285,5 +291,5 @@ void cmd_oper(Server &server, int fd, std::vector<std::string>& cmd) {
         targetFd = server.getUser(cmd[1]).getFd();
     else
         targetFd = fd;
-    send(targetFd, message.first.c_str(), message.first.length(), 0);
+    send_fd(server, targetFd, message.first);
 }
