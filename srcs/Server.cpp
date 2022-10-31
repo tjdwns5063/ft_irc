@@ -102,14 +102,15 @@ int Server::errorFlagLogic(struct kevent* currEvent) {
 
 int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
     std::cout << currEvent->ident << "curr_event: read\n";
-    char buf[BUF_SIZE];
+    char* buf = users[currEvent->ident].getBuf();
+
     if (currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
         if (connectClient() < 0) {
             status = -1;
             return -1;
         }
     } else { //client_socket에서 event가 발생했을 때
-        int len = recv(currEvent->ident, buf, BUF_SIZE, 0);
+        int len = recv(currEvent->ident, buf + strlen(buf), BUF_SIZE, 0);
         if (len <= 0) {
             std::cerr << "receive error\n";
             close(currEvent->ident);
@@ -117,12 +118,8 @@ int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
             status = -1;
             return -1;
         }
-        buf[len] = '\0';
-        users[currEvent->ident].setBuf(buf);
-        std::cout << buf << std::endl;
+        std::cout << "buf: " << buf << std::endl;
         readFds.push(currEvent->ident);
-        // for (std::map<int, User>::iterator it = users.begin(); it != users.end(); it++)
-        //     addEvents(it->second.getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
     return 0;
 }

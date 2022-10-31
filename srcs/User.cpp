@@ -112,27 +112,9 @@ void User::leaveChannel(Channel &channel) {
     {
         if (channels[i] == channel) {
             channels.erase(channels.begin() + i);
-            std::cout << "\t\tfind\n";
+            // std::cout << "\t\tfind\n";
             return ;
         }
     }
-    std::cout << "\t\tcant find\n";
-    // std::vector<Channel>::iterator it = find(channels.begin(), channels.end(), channel);
-    // if (it == channels.end())
-    // {
-    //     std::cout << "\t\tcant find\n";
-    // }
-    // else
-    // {
-    //     std::cout << "\t\tfind\n";
-    //     channels.erase(it);
-    // }
-    // std::cout << "\tchannels size: " << channels.size() << std::endl;
-    // for (it = channels.begin(); it != channels.end(); it++)
-    // {
-    //     if (*it == channel)
-    //         break;
-    // }
-
-    
+    // std::cout << "\t\tcant find\n";
 }

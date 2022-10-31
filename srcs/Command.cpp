@@ -14,16 +14,16 @@ void send_all(Server &server, std::string s)
 void send_allChannel(Server &server, User &user, string s)
 {
     std::vector<Channel> &channels = user.getChannels();
-    std::cout << "channel size: " << channels.size() << std::endl;
+    // std::cout << "channel size: " << channels.size() << std::endl;
     for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++)
     {
         std::vector<User> &users = it->getUsers();
         for (std::vector<User>::iterator it2 = users.begin(); it2 != users.end(); it2++)
         {
             server.getUser(it2->getFd()).setBuf(s);
-            std::cout << "1" << std::endl;
+            // std::cout << "1" << std::endl;
             server.addEvents(it2->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
-            std::cout << "2" << std::endl;
+            // std::cout << "2" << std::endl;
             // write(it2->getFd(), s.c_str(), s.length());
         }
     }
@@ -60,9 +60,9 @@ void cmd_nick(Server &server, int fd, std::string s, std::vector<std::string> cm
         return ;
     s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s + "\n";
 	user.setNickName(cmd[1]);
-    std::cout << "nick response: " << s << std::endl;
+    // std::cout << "nick response: " << s << std::endl;
     send_allChannel(server, user, s);
-    std::cout << "nickname : " << user.getNickName() << std::endl;
+    // std::cout << "nickname : " << user.getNickName() << std::endl;
 }
 
 void cmd_user(Server &server, int fd, std::string s, std::vector<std::string> cmd)
@@ -72,7 +72,7 @@ void cmd_user(Server &server, int fd, std::string s, std::vector<std::string> cm
     if (!server.getUser(fd).getUserName().empty())
         return ;
     server.getUser(fd).setUserName(cmd[1] + "@" + cmd[3]);
-    std::cout << "username : " << server.getUser(fd).getUserName() << std::endl;
+    // std::cout << "username : " << server.getUser(fd).getUserName() << std::endl;
     s = ":" + server.getUser(fd).getNickName() + " 001 " + server.getUser(fd).getNickName() + "\n";
     // s = ":001 " + server.getUser(fd).getNickName() + "\n";
     server.getUser(fd).setBuf(s);
@@ -91,6 +91,8 @@ void cmd_join(Server &server, int fd, std::vector<std::string> cmd)
         Channel &channel = server.getChannel(cmd[1]);
         channel.addUser(server.getUser(fd));
         server.getUser(fd).addChannel(channel);
+        std::string message = ":" + server.getUser(fd).getNickName() + " JOIN " + " :" + cmd[1] + "\n";
+        send_channel(server, channel, message);
     }
     else {
         // error 403
@@ -109,7 +111,7 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
     {
         Channel &channel = server.getChannel(cmd[1]);
         std::vector<User> &users = channel.getUsers();
-        std::cout << "user size: " << users.size() << std::endl;
+        // std::cout << "user size: " << users.size() << std::endl;
         if (channel.chkUser(fd) == false)
         {
             //error 404
@@ -129,13 +131,18 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
 
 void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cmd)
 {
-    if (cmd.size() < 2)
-        translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
+    std::string msg; 
+    User& user = server.getUser(fd);
     Channel &channel = server.getChannel(cmd[1]);
-    User &user = server.getUser(fd);
-    s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s + "\n"; 
-    std::cout << s << std::endl;
-    send_channel(server, channel, s);
+
+    if (cmd.size() < 2) {
+        msg = translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send(fd, msg.c_str(), msg.length(), 0);
+        return ;
+    }
+    msg = ":" + user.getNickName() + " PART " + cmd[1] + "\n";
+    // std::cout << s << std::endl;
+    send_channel(server, channel, msg);
     user.leaveChannel(channel);
     channel.removeUser(user);
 }
@@ -181,7 +188,7 @@ std::pair<std::string, ResultCode> makeKickMessage(Server& server, vector<string
         message += (" :" + cmd[2] + "\n");
     else
         message += "\n";
-    std::cout << "kick message: " << message;
+    // std::cout << "kick message: " << message;
 
     return std::make_pair(message, DEFAULT);
 }
