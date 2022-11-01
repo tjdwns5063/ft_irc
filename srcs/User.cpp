@@ -116,13 +116,11 @@ void User::addChannel(Channel &channel) {
 
 void User::leaveChannel(Channel &channel) {
 
-    for (int i = 0; i < channels.size(); i++)
+    for (int i = 0; i < (int) channels.size(); i++)
     {
         if (channels[i] == channel) {
             channels.erase(channels.begin() + i);
-            // std::cout << "\t\tfind\n";
             return ;
         }
     }
-    // std::cout << "\t\tcant find\n";
 }

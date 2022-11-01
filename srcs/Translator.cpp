@@ -5,7 +5,7 @@ std::string translateResult(const std::string& nickName, ResultCode result, std:
     // :scarlet.irc.ozinger.org 001 seongjki :Welcome to the Ozinger IRC Network seongjki!seongjki@121.135.181.35
     // <network name> <number reply> <nickname> <:message>
     std::string message;
-
+    
     switch (result)
     {
     case RPL_YOUREOPER:
@@ -62,7 +62,6 @@ std::string translateResult(const std::string& nickName, ResultCode result, std:
     default:
         break ;
     }
-    // std::cout << "asdfmessage: " << message << "\n";
     return message;
 }
 
