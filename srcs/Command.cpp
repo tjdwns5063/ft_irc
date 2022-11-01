@@ -108,8 +108,10 @@ void cmd_join(Server &server, int fd, std::vector<std::string> cmd)
     if (cmd[1].c_str()[0] == '#')
     {
         Channel &channel = server.getChannel(cmd[1]);
-        channel.addUser(user);
-        user.addChannel(channel);
+        channel.addUser(server.getUser(fd));
+        server.getUser(fd).addChannel(channel);
+        std::string message = ":" + server.getUser(fd).getNickName() + " JOIN " + " :" + cmd[1] + "\n";
+        send_channel(server, channel, message);
     }
     else {
         // error 403
@@ -167,16 +169,17 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
 
 void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cmd)
 {
-    User &user = server.getUser(fd);
-    if (cmd.size() < 2)
-    {
-        s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send_fd(server, fd, s);
+    std::string msg; 
+    User& user = server.getUser(fd);
+    Channel &channel = server.getChannel(cmd[1]);
+
+    if (cmd.size() < 2) {
+        msg = translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send_fd(server, fd, msg);
         return ;
     }
-    Channel &channel = server.getChannel(cmd[1]);
-    s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s + "\n";
-    send_channel(server, channel, s);
+    msg = ":" + user.getNickName() + " PART " + cmd[1] + "\n";
+    send_channel(server, channel, msg);
     user.leaveChannel(channel);
     channel.removeUser(user);
 }
@@ -185,12 +188,15 @@ void cmd_quit(Server &server, int fd)
 {
     User &user = server.getUser(fd);
     map<string, Channel> &Channels = server.getChannels();
+    std::string message = ":" + user.getNickName() + " QUIT :Quit Bye Bye\n";
+    // send(fd, message.c_str(), message.length(), 0);
     for (map<string, Channel>::iterator it = Channels.begin(); it != Channels.end(); it++)
     {
         it->second.removeUser(user);
     }
     server.removeUser(fd);
     close(fd);
+    send_all(server, message);
 }
 
 std::pair<std::string, ResultCode> makeKickMessage(Server& server, vector<string> cmd, int fd) {
@@ -292,4 +298,45 @@ void cmd_oper(Server &server, int fd, std::vector<std::string>& cmd) {
     else
         targetFd = fd;
     send_fd(server, targetFd, message.first);
+}
+
+std::pair<std::string, ResultCode> makeKillMessage(Server& server, vector<string> cmd, int fd) {
+    std::string message;
+    User& user = server.getUser(fd);
+
+    if (cmd.size() < 2) {
+        return make_pair(translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd), ERR_NEEDMOREPARAMS);
+    } else if (cmd[1] != server.getUser(cmd[1]).getNickName()) {
+        return make_pair(translateResult(user.getNickName(), ERR_NOSUCHNICK, cmd), ERR_NOSUCHNICK);
+    } else if (!user.getOp()) {
+        return make_pair(translateResult(user.getNickName(), ERR_NOPRIVILEGES, cmd), ERR_NOPRIVILEGES);
+    }
+    // user.setOp(true);
+    message = ":" + user.getNickName() + " KILL " + cmd[1] + " :" + user.getNickName() + "\n";
+    return make_pair(message, DEFAULT);
+}
+
+void cmd_kill(Server &server, int fd, std::vector<std::string>& cmd) {
+    std::pair<std::string, ResultCode> message = makeKillMessage(server, cmd, fd);
+    int targetFd;
+
+    std::cout << message.first << '\n';
+    if (message.second == DEFAULT) {
+        targetFd = server.getUser(cmd[1]).getFd();
+        std::string quitMsg = ":" + server.getUser(targetFd).getNickName() + " QUIT :Killed " + server.getUser(fd).getNickName() + "\n";
+        std::cout << "quitMsg: " << quitMsg;
+        send_fd(server, targetFd, message.first);
+        map<int, User>::iterator it = server.getUsers().begin();
+        for (; it != server.getUsers().end(); ++it) {
+            if (it->first == targetFd)
+                continue ;
+            send_fd(server, it->first, quitMsg);
+        }
+        // send_all(server, quitMsg);
+        server.getUser(targetFd).setKilled(true);
+        // send(targetFd, message.first.c_str(), message.first.length(), 0);
+    }  else {
+        send_fd(server, targetFd, message.first);
+        // send(fd, message.first.c_str(), message.first.length(),  0);
+    }
 }

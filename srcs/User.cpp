@@ -1,20 +1,20 @@
 #include "User.hpp"
 
-User::User(): fd(-1), userName(""), nickName(""), op(0), buf(new char[BUF_SIZE]) {
+User::User(): fd(-1), userName(""), nickName(""), op(0), buf(new char[BUF_SIZE]), killed(false) {
     memset(buf, 0, sizeof(char) * BUF_SIZE);
 }
 
-User::User(int fd): fd(fd), userName(""), nickName(""), op(0), buf(new char[BUF_SIZE]) {
+User::User(int fd): fd(fd), userName(""), nickName(""), op(0), buf(new char[BUF_SIZE]), killed(false) {
     memset(buf, 0, sizeof(char) * BUF_SIZE);
 }
 
 User::User(int fd, std::string userName, std::string nickName, bool op)
-    : fd(fd), userName(userName), nickName(nickName), op(op), buf(new char[BUF_SIZE]) {
+    : fd(fd), userName(userName), nickName(nickName), op(op), buf(new char[BUF_SIZE]), killed(false) {
         memset(buf, 0, sizeof(char) * BUF_SIZE);
     }
 
 User::User(const User& user)
-    : fd(user.fd), userName(user.userName), nickName(user.nickName), op(user.op), buf(new char[BUF_SIZE]) {
+    : fd(user.fd), userName(user.userName), nickName(user.nickName), op(user.op), buf(new char[BUF_SIZE]), killed(false) {
         memset(buf, 0, sizeof(char) * BUF_SIZE);
     }
  
@@ -78,6 +78,10 @@ bool User::getOp() const {
     return (this->op);
 }
 
+bool User::getKilled() const {
+    return killed;
+}
+
 void User::setUserName(std::string userName) {
     this->userName = userName;
 }
@@ -88,6 +92,10 @@ void User::setNickName(std::string nickName) {
 
 void User::setOp(bool op) {
     this->op = op;
+}
+
+void User::setKilled(bool killed) {
+    this->killed = killed;
 }
 
 bool operator==(const User& lhs, const User& rhs) {

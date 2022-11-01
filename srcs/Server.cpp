@@ -35,13 +35,13 @@ void Server::run() {
 }
 
 static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
-     int currFd = readFds.front();
-         char* buf = server.getUser(currFd).getBuf();
+    int currFd = readFds.front();
+        char* buf = server.getUser(currFd).getBuf();
 
-     if (strchr(buf, '\n'))
-         return true ;
-     return false ;
- }
+    if (strchr(buf, '\n'))
+        return true ;
+    return false ;
+}
 
 int Server::checkEvent(int newEvent) {
     struct kevent* currEvent;
@@ -120,9 +120,7 @@ int Server::readFlagLogic(struct kevent* currEvent) {
             status = -1;
             return -1;
         }
-        buf[len] = '\0';
-        users[currEvent->ident].setBuf(buf);
-        std::cout << buf << std::endl;
+        std::cout << "buf: " << buf << std::endl;
         readFds.push(currEvent->ident);
     }
     return 0;
@@ -130,18 +128,24 @@ int Server::readFlagLogic(struct kevent* currEvent) {
 
 int Server::writeFlagLogic(struct kevent* currEvent) {
     int len = strlen(users[currEvent->ident].getBuf());
+    char* buf = users[currEvent->ident].getBuf();
 
     if (len > 0) {
-        if (write(currEvent->ident, users[currEvent->ident].getBuf(), len) < 0)
+        if (write(currEvent->ident, buf, len) < 0)
         {
             std::cerr << "write error\n";
             status = -1;
             return -1;
         }
-        std::cout << "\twrited: " << users[currEvent->ident].getBuf() << std::endl;
+        std::cout << "\twrited: " << buf << std::endl;
     }
-    memset(users[currEvent->ident].getBuf(), 0, BUF_SIZE);
-    addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    memset(buf, 0, BUF_SIZE);
+    if ((getUser(currEvent->ident).getKilled())) {
+        removeUser(currEvent->ident);
+        close(currEvent->ident);
+    } else {
+        addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    }
     return 1;
 }
 

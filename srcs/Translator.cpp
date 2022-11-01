@@ -113,6 +113,10 @@ int request(Server &server, int fd, std::string s)
     {
         cmd_oper(server, fd, cmd);
     }
+    else if (cmd[0] == "kill")
+    {
+        cmd_kill(server, fd, cmd);
+    }
     while (!cmd.empty())
         cmd.pop_back();
     // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
