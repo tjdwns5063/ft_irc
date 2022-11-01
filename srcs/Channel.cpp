@@ -10,12 +10,14 @@ Channel::Channel(std::string s): name(s) {
 
 Channel::Channel(const Channel& channel) {
     this->users = channel.users;
+    this->name = channel.name;
 }
 
 Channel& Channel::operator=(const Channel& channel) {
     if (this == &channel)
         return *this;
     this->users = channel.users;
+    this->name = channel.name;
     return *this;
 }
 

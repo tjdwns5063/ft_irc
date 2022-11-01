@@ -20,8 +20,7 @@ public:
     ~Channel();
     Channel(const Channel& channel);
     Channel& operator=(const Channel& channel);
-    std::vector<User>::iterator searchUser(const std::string& userName);
-    // void addUser(User &user);
+    std::vector<User>::iterator searchUser(const std::string& userName);1
     bool removeUser(std::string& userName);
     const std::string &getName() const;
     // const std::vector<User> &getUsers() const;
