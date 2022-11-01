@@ -287,7 +287,6 @@ void cmd_kill(Server &server, int fd, std::vector<std::string>& cmd) {
     std::cout << message.first << '\n';
     if (message.second == DEFAULT) {
         targetFd = server.getUser(cmd[1]).getFd();
-        server.removeUser(targetFd);
         send(targetFd, message.first.c_str(), message.first.length(), 0);
     }  else {
         send(fd, message.first.c_str(), message.first.length(),  0);

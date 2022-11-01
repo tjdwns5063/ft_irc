@@ -14,6 +14,7 @@ private:
     std::vector<Channel> channels;
     bool op;
     char *buf;
+    bool killed;
 
 public:
     User();
@@ -30,9 +31,11 @@ public:
     const std::string getUserName() const;
     const std::string getNickName() const;
     bool getOp() const;
+    bool getKilled() const;
     void setUserName(std::string userName);
     void setNickName(std::string nickName);
     void setOp(bool op);
+    void setKilled(bool killed);
     std::vector<Channel> &getChannels();
     void addChannel(Channel &channel);
     void leaveChannel(Channel &channel);
