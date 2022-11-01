@@ -26,5 +26,6 @@ void cmd_pass(Server &server, int fd, std::vector<std::string>& cmd);
 
 void cmd_kill(Server &server, int fd, std::vector<std::string>& cmd);
 void cmd_unknown(Server& server, int fd, std::vector<std::string>& cmd);
+void cmd_ping(Server &server, int fd, std::vector<std::string>& cmd);
 
 #endif

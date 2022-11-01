@@ -123,9 +123,15 @@ int request(Server &server, int fd, std::string s)
     else if (cmd[0] == "kill")
     {
         cmd_kill(server, fd, cmd);
-    } else {
+    }    
+    else if (cmd[0] == "PING")
+    {
+        cmd_ping(server, fd, cmd);
+    }
+     else {
         cmd_unknown(server, fd, cmd);
     }
+
     while (!cmd.empty())
         cmd.pop_back();
     // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);

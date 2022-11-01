@@ -54,6 +54,7 @@ void User::setBuf(std::string s) {
         buf[i] = s[i];
     }
     buf[i] = '\0';
+
 }
 
 void User::setBuf(char *s)
@@ -99,7 +100,6 @@ bool operator==(const User& lhs, const User& rhs) {
         lhs.getNickName() == rhs.getNickName() &&
         lhs.getUserName() == rhs.getUserName();
 }
-
 std::vector<Channel> &User::getChannels() {
     return channels;
 }

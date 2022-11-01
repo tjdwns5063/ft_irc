@@ -207,7 +207,8 @@ Channel &Server::getChannel(string s)
 {
     if (channels.find(s) == channels.end())
         addChannel(s);
-    return channels.find(s)->second;
+    return channels[s];
+    // return channels.find(s)->second;
 }
 
 std::map<int, User>& Server::getUsers() {
