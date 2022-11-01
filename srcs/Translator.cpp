@@ -22,6 +22,11 @@ std::string translateResult(const std::string& nickName, ResultCode result, std:
     
     case ERR_CANNOTSENDTOCHAN:
         message = ":localhost 404 " + nickName + " " + cmd[1] + " :Cannot send to channel\n";
+        break ;
+
+    case ERR_UNKNOWNCOMMAND:
+        message = ":localhost 421 " + cmd[0] + " :Unknown command\n";
+        break ;
 
     case ERR_ERRONEUSNICKNAME:
         message = ":localhost 432 " + nickName + "  " + cmd[1] + " :Erroneus nickname\n";
@@ -116,6 +121,8 @@ int request(Server &server, int fd, std::string s)
     else if (cmd[0] == "kill")
     {
         cmd_kill(server, fd, cmd);
+    } else {
+        cmd_unknown(server, fd, cmd);
     }
     while (!cmd.empty())
         cmd.pop_back();

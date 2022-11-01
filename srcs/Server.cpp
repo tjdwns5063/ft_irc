@@ -38,8 +38,11 @@ static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
     int currFd = readFds.front();
         char* buf = server.getUser(currFd).getBuf();
 
-    if (strchr(buf, '\n'))
+    if (strchr(buf, '\n')) {
+        std::cout << "true\n";
         return true ;
+    }
+    std::cout << "false\n";
     return false ;
 }
 
@@ -54,7 +57,6 @@ int Server::checkEvent(int newEvent) {
         if (currEvent->filter == EVFILT_READ) {
             readFlagLogic(currEvent);
         }
-
         if (currEvent->filter == EVFILT_WRITE) {
             writeFlagLogic(currEvent);
         }

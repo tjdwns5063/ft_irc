@@ -340,3 +340,8 @@ void cmd_kill(Server &server, int fd, std::vector<std::string>& cmd) {
         // send(fd, message.first.c_str(), message.first.length(),  0);
     }
 }
+
+void cmd_unknown(Server& server, int fd, std::vector<std::string>& cmd) {
+    std::string message = translateResult(server.getUser(fd).getNickName(), ERR_UNKNOWNCOMMAND, cmd);
+    send_fd(server, fd, message);
+}
