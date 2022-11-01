@@ -1,21 +1,26 @@
 #include "User.hpp"
 
-User::User(): fd(-1), userName(""), nickName(""), op(0), buf(new char[BUF_SIZE]), killed(false) {
+User::User(): fd(-1), userName(""), nickName(""), buf(new char[BUF_SIZE])  {
+    std::cout << "User Default Constructor Called\n";
     memset(buf, 0, sizeof(char) * BUF_SIZE);
+    memset(flags, 0, sizeof(bool) * 4);
 }
 
-User::User(int fd): fd(fd), userName(""), nickName(""), op(0), buf(new char[BUF_SIZE]), killed(false) {
+User::User(int fd): fd(fd), userName(""), nickName(""), buf(new char[BUF_SIZE]) {
     memset(buf, 0, sizeof(char) * BUF_SIZE);
+    memset(flags, 0, sizeof(bool) * 4);
 }
 
 User::User(int fd, std::string userName, std::string nickName, bool op)
-    : fd(fd), userName(userName), nickName(nickName), op(op), buf(new char[BUF_SIZE]), killed(false) {
+    : fd(fd), userName(userName), nickName(nickName), buf(new char[BUF_SIZE]) {
         memset(buf, 0, sizeof(char) * BUF_SIZE);
+        memset(flags, 0, sizeof(bool) * 4);
     }
 
 User::User(const User& user)
-    : fd(user.fd), userName(user.userName), nickName(user.nickName), op(user.op), buf(new char[BUF_SIZE]), killed(false) {
+    : fd(user.fd), userName(user.userName), nickName(user.nickName), buf(new char[BUF_SIZE]) {
         memset(buf, 0, sizeof(char) * BUF_SIZE);
+        memset(flags, 0, sizeof(bool) * 4);
     }
  
 User::~User() {
@@ -29,7 +34,6 @@ User& User::operator=(const User& user) {
     this->fd = user.fd;
     this->userName = user.userName;
     this->nickName = user.nickName;
-    this->op = user.op;
     return (*this);
 }
 
@@ -74,12 +78,8 @@ const std::string User::getNickName() const {
     return (this->nickName);
 }
 
-bool User::getOp() const {
-    return (this->op);
-}
-
-bool User::getKilled() const {
-    return killed;
+bool User::getFlag(int idx) const {
+    return (this->flags[idx]);
 }
 
 void User::setUserName(std::string userName) {
@@ -90,18 +90,13 @@ void User::setNickName(std::string nickName) {
     this->nickName = nickName;
 }
 
-void User::setOp(bool op) {
-    this->op = op;
-}
-
-void User::setKilled(bool killed) {
-    this->killed = killed;
+void User::setFlag(int idx, bool flag) {
+    this->flags[idx] = flag;
 }
 
 bool operator==(const User& lhs, const User& rhs) {
     return lhs.getFd() == rhs.getFd() &&
         lhs.getNickName() == rhs.getNickName() &&
-        lhs.getOp() == rhs.getOp() &&
         lhs.getUserName() == rhs.getUserName();
 }
 

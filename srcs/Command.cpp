@@ -3,9 +3,11 @@
 void send_all(Server &server, std::string s)
 {
 	std::map<int, User> &users = server.getUsers();
+    std::cout << users.size() << '\n';
 
 	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); it++)
 	{
+        std::cout << "fd: " << it->second.getFd() << '\n';
         server.getUser(it->second.getFd()).setBuf(s);
         server.addEvents(it->second.getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
 	}
@@ -30,6 +32,7 @@ void send_channel(Server &server, Channel &channel, string s)
 {
     for (std::vector<User>::iterator it = channel.getUsers().begin(); it != channel.getUsers().end(); it++)
     {
+        std::cout << it->getFd() << '\n';
         server.getUser(it->getFd()).setBuf(s);
         server.addEvents(it->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
     }
@@ -39,6 +42,7 @@ void send_excludeme(Server &server, Channel &channel, User &user, string s)
 {
     for (std::vector<User>::iterator it = channel.getUsers().begin(); it != channel.getUsers().end(); it++)
     {
+        std::cout << "fd: " << it->getFd() << '\n';
         if (it->getFd() == user.getFd())
             continue ;
         server.getUser(it->getFd()).setBuf(s);
@@ -52,47 +56,47 @@ void send_fd(Server &server, int fd, string s)
     server.addEvents(fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
 }
 
-void cmd_nick(Server &server, int fd, std::string s, std::vector<std::string> cmd)
+void cmd_nick(Server &server, int fd, std::vector<std::string> cmd)
 {
     User &user = server.getUser(fd);
+    std::string message;
+    std::vector<Channel>& channels = user.getChannels();
+
     if (cmd.size() < 2)
     {
-        s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send_fd(server, fd, s);
+        message = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send_fd(server, fd, message);
         return ;       
     }
-    if (user.getNickName() == cmd[1])
+    if (server.searchUser(cmd[1])) {
+        message = translateResult(user.getNickName(), ERR_NICKNAMEINUSE, cmd);
+        send_fd(server, fd, message);
         return ;
-    s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s + "\n";
+    }
+    message = ":" + user.getNickName() + " NICK " + cmd[1] + "\n";
 	user.setNickName(cmd[1]);
-    send_allChannel(server, user, s);
+    send_all(server, message);
 }
 
-void cmd_user(Server &server, int fd, std::string s, std::vector<std::string> cmd)
+void cmd_user(Server &server, int fd, std::vector<std::string> cmd)
 {
     User &user = server.getUser(fd);
+    std::string message;
     if (cmd.size() < 5)
     {
-        s = translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send_fd(server, fd, s);
+        message = translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send_fd(server, fd, message);
         return ;
-    }
-    if (!user.getUserName().empty())
-        return ;
-    map<int, User>::iterator it;
-    for (it = server.getUsers().begin(); it != server.getUsers().end(); it++)
-    {
-        if (it->second.getNickName() == cmd[1])
-        {
-            s = translateResult(user.getNickName(), ERR_NOSUCHCHANNEL, cmd);
-            send_fd(server, fd, s);
-            return ;
-        }
     }
     user.setUserName(cmd[1] + "@" + cmd[3]);
-    s = ":" + user.getNickName() + " 001 " + user.getNickName() + "\n";
-    user.setBuf(s);
-    server.addEvents(fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+    if (!user.getFlag(REGISTERD)) {
+        message = ":" + user.getNickName() + " 001 " + user.getNickName() + "\n";
+        user.setFlag(REGISTERD, true);
+    } else {
+        message = translateResult(user.getNickName(), ERR_ALREADYREGISTERED, cmd);
+    }
+    send_fd(server, fd, message);
+    std::cout << "users: " << server.getUsers().size() << '\n';
 }
 
 void cmd_join(Server &server, int fd, std::vector<std::string> cmd)
@@ -110,39 +114,40 @@ void cmd_join(Server &server, int fd, std::vector<std::string> cmd)
         Channel &channel = server.getChannel(cmd[1]);
         channel.addUser(server.getUser(fd));
         server.getUser(fd).addChannel(channel);
-        std::string message = ":" + server.getUser(fd).getNickName() + " JOIN " + " :" + cmd[1] + "\n";
-        send_channel(server, channel, message);
+        s = ":" + server.getUser(fd).getNickName() + " JOIN " + " :" + cmd[1] + "\n";
+        send_channel(server, channel, s);
     }
     else {
         // error 403
         s = translateResult(user.getNickName(), ERR_NOSUCHCHANNEL, cmd);
         send_fd(server, fd, s);
-        return ;
     }
 }
 
-void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string> cmd)
+void cmd_privmsg(Server &server, int fd, std::vector<std::string> cmd)
 {
     User &user = server.getUser(fd);
+    std::string message;
     if (cmd.size() < 3)
     {
-        s = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send_fd(server, fd, s);
+        message = translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd);
+        send_fd(server, fd, message);
         return ;
     }
-    s = ":" + user.getNickName() + "!" + user.getUserName() + " " + s; 
-    s += "\n";
     if (cmd[1].c_str()[0] == '#')
     {
         Channel &channel = server.getChannel(cmd[1]);
         if (channel.chkUser(fd) == false)
         {
             //error 404
-            s = translateResult(user.getNickName(), ERR_CANNOTSENDTOCHAN, cmd);
-            send_fd(server, fd, s);
+            message = translateResult(user.getNickName(), ERR_CANNOTSENDTOCHAN, cmd);
+            send_fd(server, fd, message);
             return ;
         }
-        send_excludeme(server, channel, user, s);
+        //   :Angel PRIVMSG Wiz :Hello are you receiving this message ?
+        message = ":" + user.getNickName() + "!" + user.getUserName() + " " + cmd[0] + " " + cmd[1] + " " + ": " + cmd[2] + "\n"; 
+        send_excludeme(server, channel, user, message);
+        return ;
     }
     else
     {
@@ -157,17 +162,16 @@ void cmd_privmsg(Server &server, int fd, std::string s, std::vector<std::string>
         }
         if (rcvfd == -1)
         {
-            s = translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
-            send_fd(server, fd, s);
+            message = translateResult(server.getUser(fd).getNickName(), ERR_NOSUCHNICK, cmd);
+            send_fd(server, fd, message);
             return ; 
         }
-        User &rcvuser = server.getUser(rcvfd);
-        rcvuser.setBuf(s);
-        server.addEvents(rcvfd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+        message = ":" + user.getNickName() + "!" + user.getUserName() + " " + cmd[0] + " " + cmd[1] + " " + ": " + cmd[2] + "\n"; 
+        send_fd(server, rcvfd, message);
     }
 }
 
-void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cmd)
+void cmd_part(Server &server, int fd, std::vector<std::string> cmd)
 {
     std::string msg; 
     User& user = server.getUser(fd);
@@ -210,7 +214,7 @@ std::pair<std::string, ResultCode> makeKickMessage(Server& server, vector<string
         return std::make_pair(translateResult(nickname, ERR_NEEDMOREPARAMS, cmd), ERR_NEEDMOREPARAMS);
     } else if (targetChannelIter == channels.end()) {
         return std::make_pair(translateResult(nickname, ERR_NOSUCHCHANNEL, cmd), ERR_NOSUCHCHANNEL);
-    } else if (!user.getOp()) {
+    } else if (!user.getFlag(OP)) {
         return std::make_pair(translateResult(nickname, ERR_CHANOPRIVSNEEDED, cmd), ERR_CHANOPRIVSNEEDED);
     } else {
         Channel& targetChannel = targetChannelIter->second;
@@ -252,14 +256,14 @@ std::pair<std::string, ResultCode> makePassMesaage(Server &server, vector<std::s
     if (cmd.size() < 2) {
         message = ":localhost 461 " + user.getNickName() + " :Not enough parameters\n";
         return make_pair(message, ERR_NEEDMOREPARAMS);
+    } else if (server.getUsers().find(fd)->second.getUserName() != "") {
+        message = ":localhost 462 " + user.getNickName() + " :You may not reregister\n";
+        return make_pair(message, ERR_ALREADYREGISTERED);
     } else if (pw != cmd[1]) {
         message = ":localhost 464 " + user.getNickName() + " :Password incorrect\n";
         return make_pair(message, ERR_PASSWDMISMATCH);
     }
-    if (server.getUsers().find(fd)->second.getUserName() != "") {
-        message = ":localhost 462 " + user.getNickName() + " :You may not reregister\n";
-        return make_pair(message, ERR_ALREADYREGISTERED);
-    }
+    
     message = ":localhost :Password is Correct\n";
     return (make_pair(message, DEFAULT));
 }
@@ -276,15 +280,21 @@ std::pair<std::string, ResultCode> makeOperMessage(Server& server, vector<string
     } else if (pw != cmd[2]) {
         return make_pair(translateResult(user.getNickName(), ERR_PASSWDMISMATCH, cmd), ERR_PASSWDMISMATCH);
     } 
-    user.setOp(true);
+    user.setFlag(OP, true);
     message = ":localhost 381 " + cmd[1] + " :You are now an IRC operator\n";
     return make_pair(message, DEFAULT);
 }
 
 void cmd_pass(Server &server, int fd, std::vector<std::string>& cmd) {
     std::pair<std::string, ResultCode> message;
+    User& user = server.getUser(fd);
 
     message = makePassMesaage(server, cmd, fd);
+    if (message.second == DEFAULT) {
+        user.setFlag(PASSED, true);
+    } else if (message.second == ERR_PASSWDMISMATCH) {
+        user.setFlag(PASSED, false);
+    }
     send_fd(server, fd, message.first);
 }
 
@@ -308,7 +318,7 @@ std::pair<std::string, ResultCode> makeKillMessage(Server& server, vector<string
         return make_pair(translateResult(user.getNickName(), ERR_NEEDMOREPARAMS, cmd), ERR_NEEDMOREPARAMS);
     } else if (cmd[1] != server.getUser(cmd[1]).getNickName()) {
         return make_pair(translateResult(user.getNickName(), ERR_NOSUCHNICK, cmd), ERR_NOSUCHNICK);
-    } else if (!user.getOp()) {
+    } else if (!user.getFlag(OP)) {
         return make_pair(translateResult(user.getNickName(), ERR_NOPRIVILEGES, cmd), ERR_NOPRIVILEGES);
     }
     // user.setOp(true);
@@ -332,16 +342,15 @@ void cmd_kill(Server &server, int fd, std::vector<std::string>& cmd) {
                 continue ;
             send_fd(server, it->first, quitMsg);
         }
-        // send_all(server, quitMsg);
-        server.getUser(targetFd).setKilled(true);
-        // send(targetFd, message.first.c_str(), message.first.length(), 0);
+        server.getUser(targetFd).setFlag(KILLED, true);
     }  else {
         send_fd(server, targetFd, message.first);
-        // send(fd, message.first.c_str(), message.first.length(),  0);
     }
 }
 
 void cmd_unknown(Server& server, int fd, std::vector<std::string>& cmd) {
+    if (cmd[0] == "MODE" || cmd[0] == "PING")
+        return ;
     std::string message = translateResult(server.getUser(fd).getNickName(), ERR_UNKNOWNCOMMAND, cmd);
     send_fd(server, fd, message);
 }

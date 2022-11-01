@@ -77,6 +77,8 @@ int request(Server &server, int fd, std::string s)
 {
     vector<std::string> cmd = split(s, ' ');
 
+    if (fd < 0)
+        return 1;
     // translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
     for (int i = 0 ; i < (int)cmd.size(); i++)
     {
@@ -88,11 +90,11 @@ int request(Server &server, int fd, std::string s)
     }
     else if (cmd[0] == "NICK")
     {
-        cmd_nick(server, fd, s, cmd);
+        cmd_nick(server, fd, cmd);
     }
     else if (cmd[0] == "USER")
     {
-        cmd_user(server, fd, s, cmd);
+        cmd_user(server, fd, cmd);
     }
     else if (cmd[0] == "JOIN") // channel join
     {
@@ -100,11 +102,11 @@ int request(Server &server, int fd, std::string s)
     }
     else if (cmd[0] == "PRIVMSG") // send msg
     {
-        cmd_privmsg(server, fd, s, cmd);
+        cmd_privmsg(server, fd, cmd);
     }
     else if (cmd[0] == "LEAVE" || cmd[0] == "PART") // leave channel
     {
-        cmd_part(server, fd, s, cmd);
+        cmd_part(server, fd, cmd);
     }
     else if (cmd[0] == "QUIT")
     {
