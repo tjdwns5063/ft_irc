@@ -6,15 +6,21 @@
 
 class Channel;
 
+enum FlagEnum {
+  OP,
+  KILLED,
+  PASSED,
+  REGISTERD  
+};
+
 class User {
 private:
     int fd;
     std::string userName;
     std::string nickName;
     std::vector<Channel> channels;
-    bool op;
     char *buf;
-    bool killed;
+    bool flags[4]; // 0: OP 1: Killed 2: Passed 3: Registerd;
 
 public:
     User();
@@ -30,12 +36,16 @@ public:
     void clearBuf();
     const std::string getUserName() const;
     const std::string getNickName() const;
-    bool getOp() const;
-    bool getKilled() const;
+    // bool getOp() const;
+    // bool getKilled() const;
+    // bool getPassed() const;
+    bool getFlag(int idx) const;
     void setUserName(std::string userName);
     void setNickName(std::string nickName);
-    void setOp(bool op);
-    void setKilled(bool killed);
+    void setFlag(int idx, bool flag);
+    // void setOp(bool op);
+    // void setKilled(bool killed);
+    // void setPassed(bool passed);
     std::vector<Channel> &getChannels();
     void addChannel(Channel &channel);
     void leaveChannel(Channel &channel);

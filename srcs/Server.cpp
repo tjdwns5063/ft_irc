@@ -34,12 +34,15 @@ void Server::run() {
     }
 }
 
-static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
+ static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
     int currFd = readFds.front();
-        char* buf = server.getUser(currFd).getBuf();
+    if (currFd < 0)
+        return false ;
+    char* buf = server.getUser(currFd).getBuf();
 
-    if (strchr(buf, '\n'))
+    if (strchr(buf, '\n')) {
         return true ;
+    }
     return false ;
 }
 
@@ -54,7 +57,6 @@ int Server::checkEvent(int newEvent) {
         if (currEvent->filter == EVFILT_READ) {
             readFlagLogic(currEvent);
         }
-
         if (currEvent->filter == EVFILT_WRITE) {
             writeFlagLogic(currEvent);
         }
@@ -79,12 +81,12 @@ int Server::connectClient()
 
     if ((client_socket = accept(server_sock, NULL, NULL)) == -1) {
         std::cerr << "accept error\n";
-        return 1;
+        return -1;
     }
-    users[client_socket] = User(client_socket);
     fcntl(client_socket, F_SETFL, O_NONBLOCK);
+    users[client_socket] = User(client_socket);
     addEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-    return 0;
+    return client_socket;
 }
 
 void Server::addEvents(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
@@ -105,14 +107,20 @@ int Server::errorFlagLogic(struct kevent* currEvent) {
 }
 
 int Server::readFlagLogic(struct kevent* currEvent) {
-    char* buf = users[currEvent->ident].getBuf();
+    int client_sock;
+
     if ((int) currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
-        if (connectClient() < 0) {
+        client_sock = connectClient();
+        if (client_sock < 0) {
             status = -1;
             return -1;
         }
+        std::cout << "client_sock: " << client_sock << '\n';
+        // users[client_sock] = User(client_sock);
     } else { //client_socket에서 event가 발생했을 때
+        char* buf = users[currEvent->ident].getBuf();
         int len = recv(currEvent->ident, buf + strlen(buf), BUF_SIZE, 0);
+
         if (len <= 0) {
             std::cerr << "receive error\n";
             close(currEvent->ident);
@@ -140,7 +148,7 @@ int Server::writeFlagLogic(struct kevent* currEvent) {
         std::cout << "\twrited: " << buf << std::endl;
     }
     memset(buf, 0, BUF_SIZE);
-    if ((getUser(currEvent->ident).getKilled())) {
+    if ((getUser(currEvent->ident).getFlag(KILLED))) {
         removeUser(currEvent->ident);
         close(currEvent->ident);
     } else {
@@ -209,4 +217,14 @@ std::map<int, User>& Server::getUsers() {
 
 const std::string& Server::getPassword() const {
     return (this->password);
+}
+
+bool Server::searchUser(std::string& nickName) {
+    std::map<int, User>::iterator begin = users.begin();
+    for (; begin != users.end(); ++begin) {
+        if (begin->second.getNickName() == nickName) {
+            return true;
+        }
+    }
+    return false;
 }

@@ -54,6 +54,7 @@ public:
     std::map<string, Channel> &getChannels();
     Channel &getChannel(string s);
     void removeUser(int fd);
+    bool searchUser(std::string& nickName);
 };
 
 vector<string> split(string input, char delimiter);

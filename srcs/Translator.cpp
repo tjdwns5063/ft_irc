@@ -22,6 +22,11 @@ std::string translateResult(const std::string& nickName, ResultCode result, std:
     
     case ERR_CANNOTSENDTOCHAN:
         message = ":localhost 404 " + nickName + " " + cmd[1] + " :Cannot send to channel\n";
+        break ;
+
+    case ERR_UNKNOWNCOMMAND:
+        message = ":localhost 421 " + cmd[0] + " :Unknown command\n";
+        break ;
 
     case ERR_ERRONEUSNICKNAME:
         message = ":localhost 432 " + nickName + "  " + cmd[1] + " :Erroneus nickname\n";
@@ -72,6 +77,8 @@ int request(Server &server, int fd, std::string s)
 {
     vector<std::string> cmd = split(s, ' ');
 
+    if (fd < 0)
+        return 1;
     // translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
     for (int i = 0 ; i < (int)cmd.size(); i++)
     {
@@ -83,11 +90,11 @@ int request(Server &server, int fd, std::string s)
     }
     else if (cmd[0] == "NICK")
     {
-        cmd_nick(server, fd, s, cmd);
+        cmd_nick(server, fd, cmd);
     }
     else if (cmd[0] == "USER")
     {
-        cmd_user(server, fd, s, cmd);
+        cmd_user(server, fd, cmd);
     }
     else if (cmd[0] == "JOIN") // channel join
     {
@@ -95,11 +102,11 @@ int request(Server &server, int fd, std::string s)
     }
     else if (cmd[0] == "PRIVMSG") // send msg
     {
-        cmd_privmsg(server, fd, s, cmd);
+        cmd_privmsg(server, fd, cmd);
     }
     else if (cmd[0] == "LEAVE" || cmd[0] == "PART") // leave channel
     {
-        cmd_part(server, fd, s, cmd);
+        cmd_part(server, fd, cmd);
     }
     else if (cmd[0] == "QUIT")
     {
@@ -116,11 +123,15 @@ int request(Server &server, int fd, std::string s)
     else if (cmd[0] == "kill")
     {
         cmd_kill(server, fd, cmd);
-    }
+    }    
     else if (cmd[0] == "PING")
     {
         cmd_ping(server, fd, cmd);
     }
+     else {
+        cmd_unknown(server, fd, cmd);
+    }
+
     while (!cmd.empty())
         cmd.pop_back();
     // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
