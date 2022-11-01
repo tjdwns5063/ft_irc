@@ -175,7 +175,7 @@ void cmd_part(Server &server, int fd, std::string s, std::vector<std::string> cm
 
     if (cmd.size() < 2) {
         msg = translateResult(server.getUser(fd).getNickName(), ERR_NEEDMOREPARAMS, cmd);
-        send(fd, msg.c_str(), msg.length(), 0);
+        send_fd(server, fd, msg);
         return ;
     }
     msg = ":" + user.getNickName() + " PART " + cmd[1] + "\n";
@@ -188,14 +188,15 @@ void cmd_quit(Server &server, int fd)
 {
     User &user = server.getUser(fd);
     map<string, Channel> &Channels = server.getChannels();
-    std::string message = ":localhost QUIT :Quit Bye Bye\n";
-    send(fd, message.c_str(), message.length(), 0);
+    std::string message = ":" + user.getNickName() + " QUIT :Quit Bye Bye\n";
+    // send(fd, message.c_str(), message.length(), 0);
     for (map<string, Channel>::iterator it = Channels.begin(); it != Channels.end(); it++)
     {
         it->second.removeUser(user);
     }
     server.removeUser(fd);
-    // close(fd);
+    close(fd);
+    send_all(server, message);
 }
 
 std::pair<std::string, ResultCode> makeKickMessage(Server& server, vector<string> cmd, int fd) {
@@ -322,8 +323,20 @@ void cmd_kill(Server &server, int fd, std::vector<std::string>& cmd) {
     std::cout << message.first << '\n';
     if (message.second == DEFAULT) {
         targetFd = server.getUser(cmd[1]).getFd();
-        send(targetFd, message.first.c_str(), message.first.length(), 0);
+        std::string quitMsg = ":" + server.getUser(targetFd).getNickName() + " QUIT :Killed " + server.getUser(fd).getNickName() + "\n";
+        std::cout << "quitMsg: " << quitMsg;
+        send_fd(server, targetFd, message.first);
+        map<int, User>::iterator it = server.getUsers().begin();
+        for (; it != server.getUsers().end(); ++it) {
+            if (it->first == targetFd)
+                continue ;
+            send_fd(server, it->first, quitMsg);
+        }
+        // send_all(server, quitMsg);
+        server.getUser(targetFd).setKilled(true);
+        // send(targetFd, message.first.c_str(), message.first.length(), 0);
     }  else {
-        send(fd, message.first.c_str(), message.first.length(),  0);
+        send_fd(server, targetFd, message.first);
+        // send(fd, message.first.c_str(), message.first.length(),  0);
     }
 }

@@ -35,7 +35,6 @@ void Server::run() {
 }
 
 static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
-<<<<<<< HEAD
     int currFd = readFds.front();
         char* buf = server.getUser(currFd).getBuf();
 
@@ -43,15 +42,6 @@ static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
         return true ;
     return false ;
 }
-=======
-     int currFd = readFds.front();
-         char* buf = server.getUser(currFd).getBuf();
-
-     if (strchr(buf, '\n'))
-         return true ;
-     return false ;
- }
->>>>>>> 719a251b4cce31cb5771ccea15a56608db6525a4
 
 int Server::checkEvent(int newEvent) {
     struct kevent* currEvent;
@@ -70,10 +60,6 @@ int Server::checkEvent(int newEvent) {
         }
     }
     while (!readFds.empty() && checkSpaceInBuf(*this, readFds)) {
-<<<<<<< HEAD
-        // 파싱하고 명령어에 따라 해당 클라이언트만 등록하거나 모두 등록하거나
-=======
->>>>>>> 719a251b4cce31cb5771ccea15a56608db6525a4
         std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
         for (int j = 0; j < (int)s.size(); j++)
         {
@@ -118,17 +104,9 @@ int Server::errorFlagLogic(struct kevent* currEvent) {
     return -1;
 }
 
-<<<<<<< HEAD
-int Server::readFlagLogic(struct kevent* currEvent, int& writeFlag) {
-    std::cout << currEvent->ident << "curr_event: read\n";
-    char* buf = users[currEvent->ident].getBuf();
-
-    if (currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
-=======
 int Server::readFlagLogic(struct kevent* currEvent) {
     char* buf = users[currEvent->ident].getBuf();
     if ((int) currEvent->ident == server_sock) { // server_socket에서 event가 발생 했을 때
->>>>>>> 719a251b4cce31cb5771ccea15a56608db6525a4
         if (connectClient() < 0) {
             status = -1;
             return -1;
@@ -161,12 +139,13 @@ int Server::writeFlagLogic(struct kevent* currEvent) {
         }
         std::cout << "\twrited: " << buf << std::endl;
     }
-    std::vector<std::string> cmd = split(string(buf), ' ');
-    std::cout << "cmd: " << cmd[1] << '\n';
-    if (cmd[1] == "KILL")
-        close(currEvent->ident);
     memset(buf, 0, BUF_SIZE);
-    addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    if ((getUser(currEvent->ident).getKilled())) {
+        removeUser(currEvent->ident);
+        close(currEvent->ident);
+    } else {
+        addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    }
     return 1;
 }
 
