@@ -38,11 +38,12 @@ Server::Server(int port, std::string password): port(port), password(password) {
     commands["JOIN"] = new Join(translator, ICommand::JOIN);
     commands["KICK"] = new Kick(translator, ICommand::KICK);
     commands["KILL"] = new Kill(translator, ICommand::KILL);
+    commands["kill"] = new Kill(translator, ICommand::KILL);
     commands["NICK"] = new Nick(translator, ICommand::NICK);
     commands["OPER"] = new Oper(translator, ICommand::OPER);
     commands["PART"] = new Part(translator, ICommand::PART);
     commands["PASS"] = new Pass(translator, ICommand::PASS);
-    commands["PING"] = new Pong(translator, ICommand::PONG);
+    commands["PONG"] = new Pong(translator, ICommand::PONG);
     commands["PRIVMSG"] = new Privmsg(translator, ICommand::PRIVMSG);
     commands["QUIT"] = new Quit(translator, ICommand::QUIT);
     commands["UNKNOWN"] = new Unknown(translator, ICommand::UNKNOWN);
