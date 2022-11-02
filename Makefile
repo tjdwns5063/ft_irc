@@ -1,4 +1,4 @@
-NAME=server
+NAME=ircserv
 FLAG=-Wall -Wextra -Werror -std=c++98
 INCLUDE=-I./incs/ -I./incs/Command/
 
