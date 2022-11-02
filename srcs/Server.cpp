@@ -64,7 +64,7 @@ void Server::run() {
     int currFd = readFds.front();
     if (currFd < 0)
         return false ;
-    char* buf = server.getUser(currFd).getBuf();
+    char* buf = server.getUser(currFd)->getBuf();
 
     if (strchr(buf, '\n')) {
         return true ;
@@ -74,6 +74,7 @@ void Server::run() {
 
 int Server::checkEvent(int newEvent) {
     struct kevent* currEvent;
+    // std::cout << "userSize: " << users.size() << '\n';
 
     for (int i = 0; i < newEvent; ++i) {
         currEvent = &event_list[i];
@@ -81,7 +82,7 @@ int Server::checkEvent(int newEvent) {
             errorFlagLogic(currEvent);
         }
         if (currEvent->flags & EV_EOF) {
-            removeUser(currEvent->ident);
+            // removeUser(currEvent->ident);
             close(currEvent->ident);
             continue ;
         }
@@ -93,7 +94,7 @@ int Server::checkEvent(int newEvent) {
         }
     }
     while (!readFds.empty() && checkSpaceInBuf(*this, readFds)) {
-        std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
+        std::vector<std::string> s = split(string(this->getUser(readFds.front())->getBuf()), '\n');
         for (int j = 0; j < (int)s.size(); j++)
         {
             // if (request(*this, readFds.front(), s[j]))
@@ -149,9 +150,9 @@ int Server::readFlagLogic(struct kevent* currEvent) {
             status = -1;
             return -1;
         }
-        users[client_sock] = User(client_sock);
+        users[client_sock] = new User(client_sock);
     } else { //client_socket에서 event가 발생했을 때
-        char* buf = users[currEvent->ident].getBuf();
+        char* buf = users[currEvent->ident]->getBuf();
         int len = recv(currEvent->ident, buf + strlen(buf), BUF_SIZE, 0);
 
         if (len < 0) {
@@ -168,8 +169,8 @@ int Server::readFlagLogic(struct kevent* currEvent) {
 }
 
 int Server::writeFlagLogic(struct kevent* currEvent) {
-    int len = strlen(users[currEvent->ident].getBuf());
-    char* buf = users[currEvent->ident].getBuf();
+    int len = strlen(users[currEvent->ident]->getBuf());
+    char* buf = users[currEvent->ident]->getBuf();
 
     if (len > 0) {
         if (write(currEvent->ident, buf, len) < 0)
@@ -181,7 +182,7 @@ int Server::writeFlagLogic(struct kevent* currEvent) {
         std::cout << "\twrited: " << buf << std::endl;
     }
     memset(buf, 0, BUF_SIZE);
-    if ((getUser(currEvent->ident).getFlag(KILLED))) {
+    if ((getUser(currEvent->ident)->getFlag(KILLED))) {
         removeUser(currEvent->ident);
         close(currEvent->ident);
     } else {
@@ -206,15 +207,15 @@ int Server::makeServerSock() {
     return server_sock;
 }
 
-User& Server::getUser(int n)
+User* Server::getUser(int n)
 {
     return users[n];
 }
 
-User& Server::getUser(std::string& nick) {
-    map<int, User>::iterator it;
+User* Server::getUser(std::string& nick) {
+    map<int, User*>::iterator it;
     for (it = users.begin(); it != users.end(); ++it) {
-        if (it->second.getNickName() == nick)
+        if (it->second->getNickName() == nick)
             return it->second;
     }
     return it->second;
@@ -228,15 +229,15 @@ void Server::removeUser(int fd)
 void Server::addChannel(string s)
 {
     // channels.insert(pair<std::string, Channel>(s, Channel()));
-    channels[s] = Channel(s);
+    channels[s] = new Channel(s);
 }
 
-std::map<string, Channel> &Server::getChannels()
+std::map<string, Channel*> &Server::getChannels()
 {
     return channels;
 }
 
-Channel &Server::getChannel(string s)
+Channel* Server::getChannel(string s)
 {
     if (channels.find(s) == channels.end())
         addChannel(s);
@@ -244,7 +245,7 @@ Channel &Server::getChannel(string s)
     // return channels.find(s)->second;
 }
 
-std::map<int, User>& Server::getUsers() {
+std::map<int, User*>& Server::getUsers() {
     return (this->users);
 }
 
@@ -253,9 +254,9 @@ const std::string& Server::getPassword() const {
 }
 
 bool Server::searchUser(std::string& nickName) {
-    std::map<int, User>::iterator begin = users.begin();
+    std::map<int, User*>::iterator begin = users.begin();
     for (; begin != users.end(); ++begin) {
-        if (begin->second.getNickName() == nickName) {
+        if (begin->second->getNickName() == nickName) {
             return true;
         }
     }
