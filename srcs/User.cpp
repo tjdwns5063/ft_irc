@@ -25,6 +25,7 @@ User::User(const User& user)
  
 User::~User() {
     delete[] (buf);
+    std::cout << "User Destructor Called\n";
 }
 
 User& User::operator=(const User& user) {

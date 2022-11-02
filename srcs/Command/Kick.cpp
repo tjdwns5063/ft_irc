@@ -23,6 +23,7 @@ int Kick::publishResultCode(Server& server, std::vector<std::string>& cmd, int f
     } else {
         Channel& targetChannel = targetChannelIter->second;
         // 내가 그 채널에 있는지
+        std::cout << "nickname " << user.getNickName() << '\n';
         if (targetChannel.searchUser(user.getNickName()) == targetChannel.getUsers().end()) {
             return translator->ERR_NOTONCHANNEL;
         }
