@@ -46,7 +46,7 @@ public:
 	ICommand(Translator* translator, CommandType type);
 	virtual ~ICommand();
 	CommandType getType() const;
-	virtual int publishResultCode(Server& server, std::vector<std::string>& cmd, int fd) = 0;
+	// virtual int publishResultCode(Server& server, std::vector<std::string>& cmd, int fd) = 0;
 	virtual void execute(Server& server, std::vector<std::string>& cmd, int fd) = 0;
 };
 

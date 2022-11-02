@@ -80,6 +80,11 @@ int Server::checkEvent(int newEvent) {
         if (currEvent->flags & EV_ERROR) {
             errorFlagLogic(currEvent);
         }
+        if (currEvent->flags & EV_EOF) {
+            removeUser(currEvent->ident);
+            close(currEvent->ident);
+            continue ;
+        }
         if (currEvent->filter == EVFILT_READ) {
             readFlagLogic(currEvent);
         }
@@ -114,7 +119,6 @@ int Server::connectClient()
         return -1;
     }
     fcntl(client_socket, F_SETFL, O_NONBLOCK);
-    users[client_socket] = User(client_socket);
     addEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     return client_socket;
 }
@@ -145,16 +149,15 @@ int Server::readFlagLogic(struct kevent* currEvent) {
             status = -1;
             return -1;
         }
-        std::cout << "client_sock: " << client_sock << '\n';
-        // users[client_sock] = User(client_sock);
+        users[client_sock] = User(client_sock);
     } else { //client_socket에서 event가 발생했을 때
         char* buf = users[currEvent->ident].getBuf();
         int len = recv(currEvent->ident, buf + strlen(buf), BUF_SIZE, 0);
 
-        if (len <= 0) {
+        if (len < 0) {
             std::cerr << "receive error\n";
             close(currEvent->ident);
-            users.erase(currEvent->ident);
+            removeUser(currEvent->ident);
             status = -1;
             return -1;
         }

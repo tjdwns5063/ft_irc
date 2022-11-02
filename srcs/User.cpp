@@ -11,7 +11,7 @@ User::User(int fd): fd(fd), userName(""), nickName(""), buf(new char[BUF_SIZE]) 
     memset(flags, 0, sizeof(bool) * 4);
 }
 
-User::User(int fd, std::string userName, std::string nickName, bool op)
+User::User(int fd, std::string userName, std::string nickName)
     : fd(fd), userName(userName), nickName(nickName), buf(new char[BUF_SIZE]) {
         memset(buf, 0, sizeof(char) * BUF_SIZE);
         memset(flags, 0, sizeof(bool) * 4);
@@ -25,6 +25,7 @@ User::User(const User& user)
  
 User::~User() {
     delete[] (buf);
+    std::cout << "User Destructor Called\n";
 }
 
 User& User::operator=(const User& user) {

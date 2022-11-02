@@ -7,7 +7,7 @@ Part::Part(Translator* translator, CommandType type): ICommand(translator, type)
 
 Part::~Part() {}
 
-int Part::publishResultCode(Server& server, std::vector<std::string>& cmd, int fd) {
+int Part::publishResultCode(std::vector<std::string>& cmd) {
 	std::string message;
     
     if (cmd.size() < 2)
@@ -16,7 +16,7 @@ int Part::publishResultCode(Server& server, std::vector<std::string>& cmd, int f
 }
 
 void Part::execute(Server& server, std::vector<std::string>& cmd, int fd) {
-	int code = publishResultCode(server, cmd, fd);
+	int code = publishResultCode(cmd);
 	std::string message;
 	const std::string& nickName = server.getUser(fd).getNickName();
 

@@ -7,7 +7,7 @@ class Nick: public ICommand {
 public:
 	Nick(Translator* translator, CommandType type);
 	~Nick();
-	int publishResultCode(Server& server, std::vector<std::string>& cmd, int fd);
+	int publishResultCode(Server& server, std::vector<std::string>& cmd);
 	void execute(Server& server, std::vector<std::string>& cmd, int fd);
 };
 
