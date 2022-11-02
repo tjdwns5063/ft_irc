@@ -1,5 +1,4 @@
 SERVER=server
-CLIENT=client
 FLAG=-Wall -Wextra -Werror
 INCLUDE=-I./incs/ -I./incs/Command/
 
@@ -9,6 +8,8 @@ COMMAND_SRCS=$(addprefix ./srcs/Command/, $(COMMAND_SRCS_NAME))
 SERVER_SRCS=$(addprefix ./srcs/, Server.cpp User.cpp Channel.cpp main.cpp Translator.cpp utils.cpp Command.cpp)
 SRCS = $(COMMAND_SRCS) $(SERVER_SRCS)
 OBJS=$(SRCS:.cpp=.o)
+
+all: $(SERVER)
 
 $(SERVER): $(OBJS)
 	c++ $(FLAG) $(INCLUDE) $(OBJS) -o $(SERVER)
@@ -22,3 +23,5 @@ clean:
 fclean:
 	rm -rf $(OBJS)
 	rm -rf $(SERVER)
+
+re: fclean all
