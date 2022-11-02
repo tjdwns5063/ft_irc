@@ -29,17 +29,17 @@ bool Channel::operator==(const Channel& channel) {
     return name == channel.getName();
 }
 
-std::vector<User> &Channel::getUsers() {
+std::vector<User*> &Channel::getUsers() {
     return users;
 }
 
 void Channel::addUser(User &user) {
-    users.push_back(user);
+    users.push_back(&user);
 }
 
-std::vector<User>::iterator Channel::searchUser(const std::string& nickName) {
-    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
-        if (it->getNickName() == nickName) {
+std::vector<User*>::iterator Channel::searchUser(const std::string& nickName) {
+    for (std::vector<User*>::iterator it = users.begin(); it != users.end(); ++it) {
+        if ((*it)->getNickName() == nickName) {
             return it;
         }
     }
@@ -47,7 +47,7 @@ std::vector<User>::iterator Channel::searchUser(const std::string& nickName) {
 }
 
 bool Channel::removeUser(std::string& userName) {
-    std::vector<User>::iterator pos = searchUser(userName);
+    std::vector<User*>::iterator pos = searchUser(userName);
     if (pos != users.end()) {
         users.erase(pos);
         return true;
@@ -56,9 +56,9 @@ bool Channel::removeUser(std::string& userName) {
 }
 
 void Channel::removeUser(User &user) {
-	for (std::vector<User>::iterator it = users.begin(); it != users.end(); it++)
+	for (std::vector<User*>::iterator it = users.begin(); it != users.end(); it++)
 	{
-		if (it->getFd() == user.getFd())
+		if ((*it)->getFd() == user.getFd())
 		{
 			users.erase(it);
 			break ;
@@ -68,9 +68,9 @@ void Channel::removeUser(User &user) {
 
 bool Channel::chkUser(int fd)
 {
-	for (std::vector<User>::iterator it = users.begin(); it != users.end(); it++)
+	for (std::vector<User*>::iterator it = users.begin(); it != users.end(); it++)
 	{
-        if (it->getFd() == fd)
+        if ((*it)->getFd() == fd)
         {
             return 1;
         }

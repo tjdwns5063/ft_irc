@@ -18,7 +18,7 @@ private:
     int fd;
     std::string userName;
     std::string nickName;
-    std::vector<Channel> channels;
+    std::vector<Channel*> channels;
     char *buf;
     bool flags[4]; // 0: OP 1: Killed 2: Passed 3: Registerd;
 
@@ -46,7 +46,7 @@ public:
     // void setOp(bool op);
     // void setKilled(bool killed);
     // void setPassed(bool passed);
-    std::vector<Channel> &getChannels();
+    std::vector<Channel*> &getChannels();
     void addChannel(Channel &channel);
     void leaveChannel(Channel &channel);
 };
