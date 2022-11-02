@@ -86,7 +86,7 @@ std::string Translator::translateSuccess(const std::string& nickName, std::vecto
         message = ":" + nickName + " 001 " + nickName + "\n";
         break ;
     case ICommand::JOIN :
-        message = ":" + nickName + " JOIN " + " :" + cmd[1] + "\n";
+        message = ":" + nickName + " JOIN " + ":" + cmd[1] + "\n";
         break ;
     case ICommand::PRIVMSG :
         message = ":" + nickName + " " + cmd[0] + " " + cmd[1] + " " + ": " + cmd[2] + "\n";
@@ -100,9 +100,9 @@ std::string Translator::translateSuccess(const std::string& nickName, std::vecto
     case ICommand::KICK :
         message = ":" + nickName + " KICK " + cmd[1] + " " + cmd[2];
         if (cmd.size() > 3)
-            message += (" :" + cmd[2] + "\n");
+            message += (" :" + cmd[3] + "\n");
         else
-            message += "\n";
+            message += (" :" + nickName + "\n");
         break ;
     case ICommand::OPER :
         message = ":localhost 381 " + cmd[1] + " :You are now an IRC operator\n";
@@ -118,69 +118,3 @@ std::string Translator::translateSuccess(const std::string& nickName, std::vecto
     }
     return message;
 }
-
-// int request(Server &server, int fd, std::string s)
-// {
-//     vector<std::string> cmd = split(s, ' ');
-
-//     if (fd < 0)
-//         return 1;
-//     // translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
-//     for (int i = 0 ; i < (int)cmd.size(); i++)
-//     {
-//         std::cout << "cmd" << i << ": " << cmd[i] << std::endl;
-//     }
-//     if (cmd[0] == "PASS")
-//     {
-//         cmd_pass(server, fd, cmd);
-//     }
-//     else if (cmd[0] == "NICK")
-//     {
-//         cmd_nick(server, fd, cmd);
-//     }
-//     else if (cmd[0] == "USER")
-//     {
-//         cmd_user(server, fd, cmd);
-//     }
-//     else if (cmd[0] == "JOIN") // channel join
-//     {
-//         cmd_join(server, fd, cmd);
-//     }
-//     else if (cmd[0] == "PRIVMSG") // send msg
-//     {
-//         cmd_privmsg(server, fd, cmd);
-//     }
-//     else if (cmd[0] == "LEAVE" || cmd[0] == "PART") // leave channel
-//     {
-//         cmd_part(server, fd, cmd);
-//     }
-//     else if (cmd[0] == "QUIT")
-//     {
-//         cmd_quit(server, fd);
-//     }
-//     else if (cmd[0] == "KICK")
-//     {
-//         cmd_kick(server, fd, cmd);
-//     }
-//     else if (cmd[0] == "OPER")
-//     {
-//         cmd_oper(server, fd, cmd);
-//     }
-//     else if (cmd[0] == "kill")
-//     {
-//         cmd_kill(server, fd, cmd);
-//     }    
-//     else if (cmd[0] == "PING")
-//     {
-//         cmd_ping(server, fd, cmd);
-//     }
-//      else {
-//         cmd_unknown(server, fd, cmd);
-//     }
-
-//     while (!cmd.empty())
-//         cmd.pop_back();
-//     // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
-//     return 0;
-// }
- 

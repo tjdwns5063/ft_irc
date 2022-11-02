@@ -14,7 +14,7 @@ int Part::publishResultCode(Server& server, std::vector<std::string>& cmd, int f
 		return Translator::ERR_NEEDMOREPARAMS;
 	else if (server.chkChannel(cmd[1]) == false)
 		return Translator::ERR_NOSUCHCHANNEL;
-	else if (server.getChannel(cmd[1]).chkUser(fd) == false)
+	else if (server.getChannel(cmd[1])->chkUser(fd) == false)
 		return Translator::ERR_NOTONCHANNEL;
 	return Translator::DEFAULT;
 }

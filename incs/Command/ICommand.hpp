@@ -37,7 +37,8 @@ public:
 		KICK,
 		OPER,
 		KILL,
-		PONG
+		PONG,
+		UNKNOWN
 	};
 protected:
 	Translator* translator;
