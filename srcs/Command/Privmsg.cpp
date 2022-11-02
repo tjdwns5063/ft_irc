@@ -12,8 +12,8 @@ int Privmsg::publishResultCode(Server& server, std::vector<std::string>& cmd, in
     if (cmd.size() < 3)
 		return Translator::ERR_NEEDMOREPARAMS;
 	else if (cmd[1].c_str()[0] == '#') {
-		Channel &channel = server.getChannel(cmd[1]);
-        if (channel.chkUser(fd) == false) {
+		Channel *channel = server.getChannel(cmd[1]);
+        if (channel->chkUser(fd) == false) {
 			return Translator::ERR_CANNOTSENDTOCHAN;
 		}
 	}
@@ -25,14 +25,14 @@ int Privmsg::publishResultCode(Server& server, std::vector<std::string>& cmd, in
 void Privmsg::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 	int code = publishResultCode(server, cmd, fd);
 	std::string message;
-	const std::string& nickName = server.getUser(fd).getNickName();
+	const std::string& nickName = server.getUser(fd)->getNickName();
 
 	if (code == Translator::DEFAULT) {
 		message = translator->translateSuccess(nickName, cmd, *this);
 		if (cmd[1][0] == '#') {
-			send_excludeme(server, server.getChannel(cmd[1]), server.getUser(fd), message);
+			send_excludeme(server, *server.getChannel(cmd[1]), *server.getUser(fd), message);
 		} else {
-			int targetFd = server.getUser(cmd[1]).getFd();
+			int targetFd = server.getUser(cmd[1])->getFd();
 			send_fd(server, targetFd, message);
 		}
 	}  else {

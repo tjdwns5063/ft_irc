@@ -74,7 +74,7 @@ void Server::run() {
 
 int Server::checkEvent(int newEvent) {
     struct kevent* currEvent;
-    // std::cout << "userSize: " << users.size() << '\n';
+    std::cout << "userSize: " << users.size() << '\n';
 
     for (int i = 0; i < newEvent; ++i) {
         currEvent = &event_list[i];
@@ -82,7 +82,7 @@ int Server::checkEvent(int newEvent) {
             errorFlagLogic(currEvent);
         }
         if (currEvent->flags & EV_EOF) {
-            // removeUser(currEvent->ident);
+            removeUser(currEvent->ident);
             close(currEvent->ident);
             continue ;
         }
@@ -150,6 +150,7 @@ int Server::readFlagLogic(struct kevent* currEvent) {
             status = -1;
             return -1;
         }
+        std::cout << "\t User created\n";
         users[client_sock] = new User(client_sock);
     } else { //client_socket에서 event가 발생했을 때
         char* buf = users[currEvent->ident]->getBuf();

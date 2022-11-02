@@ -18,15 +18,15 @@ int Join::publishResultCode(std::vector<std::string>& cmd) {
 void Join::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 	int code = publishResultCode(cmd);
 	std::string message;
-	const std::string& nickName = server.getUser(fd).getNickName();
+	const std::string& nickName = server.getUser(fd)->getNickName();
 
 	if (code == Translator::DEFAULT) {
-		Channel &channel = server.getChannel(cmd[1]);
+		Channel* channel = server.getChannel(cmd[1]);
 
 		message = translator->translateSuccess(nickName, cmd, *this);
-		channel.addUser(server.getUser(fd));
-        server.getUser(fd).addChannel(channel);
-        send_channel(server, channel, message);
+		channel->addUser(*server.getUser(fd));
+        server.getUser(fd)->addChannel(*channel);
+        send_channel(server, *channel, message);
 	}  else {
 		message = translator->translateResult(nickName, code, cmd);
         send_fd(server, fd, message);
