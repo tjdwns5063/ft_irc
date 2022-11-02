@@ -101,12 +101,12 @@ bool operator==(const User& lhs, const User& rhs) {
         lhs.getNickName() == rhs.getNickName() &&
         lhs.getUserName() == rhs.getUserName();
 }
-std::vector<Channel> &User::getChannels() {
+std::vector<Channel*> &User::getChannels() {
     return channels;
 }
 
 void User::addChannel(Channel &channel) {
-    channels.push_back(channel);
+    channels.push_back(&channel);
 }
 
 
@@ -114,7 +114,7 @@ void User::leaveChannel(Channel &channel) {
 
     for (int i = 0; i < (int) channels.size(); i++)
     {
-        if (channels[i] == channel) {
+        if (*channels[i] == channel) {
             channels.erase(channels.begin() + i);
             return ;
         }
