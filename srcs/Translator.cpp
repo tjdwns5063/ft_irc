@@ -3,8 +3,6 @@
 #include "ICommand.hpp"
 
 std::string Translator::translateResult(const std::string& nickName, int result, std::vector<std::string> cmd) {
-    // :scarlet.irc.ozinger.org 001 seongjki :Welcome to the Ozinger IRC Network seongjki!seongjki@121.135.181.35
-    // <network name> <number reply> <nickname> <:message>
     std::string message;
     
     switch (result)

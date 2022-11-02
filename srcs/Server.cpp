@@ -57,7 +57,7 @@ Server::~Server() {
 
 void Server::run() {
     while (1) {
-        std::system("leaks server");
+        // std::system("leaks server");
         int newEvent = kevent(kqueue_fd, &changed[0], changed.size(), event_list, 10, NULL);
         changed.clear();
         checkEvent(newEvent);
@@ -150,7 +150,6 @@ int Server::readFlagLogic(struct kevent* currEvent) {
             status = -1;
             return -1;
         }
-        std::cout << "\t User created\n";
         users[client_sock] = new User(client_sock);
     } else { //client_socket에서 event가 발생했을 때
         char* buf = users[currEvent->ident]->getBuf();
@@ -232,7 +231,6 @@ void Server::removeUser(int fd)
 
 void Server::addChannel(string s)
 {
-    // channels.insert(pair<std::string, Channel>(s, Channel()));
     channels[s] = new Channel(s);
 }
 
@@ -246,7 +244,6 @@ Channel* Server::getChannel(string s)
     if (channels.find(s) == channels.end())
         addChannel(s);
     return channels[s];
-    // return channels.find(s)->second;
 }
 
 std::map<int, User*>& Server::getUsers() {

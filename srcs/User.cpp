@@ -6,7 +6,6 @@ User::User(): fd(-1), userName(""), nickName(""), buf(new char[BUF_SIZE])  {
 }
 
 User::User(int fd): fd(fd), userName(""), nickName(""), buf(new char[BUF_SIZE]) {
-    std::cout << "User Default Constructor Called\n";
     memset(buf, 0, sizeof(char) * BUF_SIZE);
     memset(flags, 0, sizeof(bool) * 4);
 }
@@ -25,7 +24,6 @@ User::User(const User& user)
  
 User::~User() {
     delete[] (buf);
-    std::cout << "User Destructor Called\n";
 }
 
 User& User::operator=(const User& user) {
