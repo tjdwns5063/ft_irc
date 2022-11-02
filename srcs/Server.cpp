@@ -57,6 +57,7 @@ Server::~Server() {
 
 void Server::run() {
     while (1) {
+        std::system("leaks server");
         int newEvent = kevent(kqueue_fd, &changed[0], changed.size(), event_list, 10, NULL);
         changed.clear();
         checkEvent(newEvent);
@@ -223,8 +224,10 @@ User* Server::getUser(std::string& nick) {
 
 void Server::removeUser(int fd)
 {
-    if (!users[fd])
+    if (users[fd]) {
+        delete users[fd];
         users.erase(fd);
+    }
 }
 
 void Server::addChannel(string s)

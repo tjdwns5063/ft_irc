@@ -36,16 +36,10 @@ public:
     void clearBuf();
     const std::string getUserName() const;
     const std::string getNickName() const;
-    // bool getOp() const;
-    // bool getKilled() const;
-    // bool getPassed() const;
     bool getFlag(int idx) const;
     void setUserName(std::string userName);
     void setNickName(std::string nickName);
     void setFlag(int idx, bool flag);
-    // void setOp(bool op);
-    // void setKilled(bool killed);
-    // void setPassed(bool passed);
     std::vector<Channel*> &getChannels();
     void addChannel(Channel &channel);
     void leaveChannel(Channel &channel);
