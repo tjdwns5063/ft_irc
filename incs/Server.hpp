@@ -57,6 +57,7 @@ public:
     std::map<int, User>& getUsers();
     const std::string& getPassword() const;
     void addChannel(string s);
+    bool chkChannel(string s);
     std::map<string, Channel> &getChannels();
     Channel &getChannel(string s);
     void removeUser(int fd);

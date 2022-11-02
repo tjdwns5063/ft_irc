@@ -7,16 +7,20 @@ Part::Part(Translator* translator, CommandType type): ICommand(translator, type)
 
 Part::~Part() {}
 
-int Part::publishResultCode(std::vector<std::string>& cmd) {
+int Part::publishResultCode(Server& server, std::vector<std::string>& cmd, int fd) {
 	std::string message;
     
     if (cmd.size() < 2)
 		return Translator::ERR_NEEDMOREPARAMS;
+	else if (server.chkChannel(cmd[1]) == false)
+		return Translator::ERR_NOSUCHCHANNEL;
+	else if (server.getChannel(cmd[1]).chkUser(fd) == false)
+		return Translator::ERR_NOTONCHANNEL;
 	return Translator::DEFAULT;
 }
 
 void Part::execute(Server& server, std::vector<std::string>& cmd, int fd) {
-	int code = publishResultCode(cmd);
+	int code = publishResultCode(server, cmd, fd);
 	std::string message;
 	const std::string& nickName = server.getUser(fd).getNickName();
 
