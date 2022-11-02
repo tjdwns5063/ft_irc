@@ -10,7 +10,7 @@ Oper::~Oper() {}
 int Oper::publishResultCode(Server& server, std::vector<std::string>& cmd, int fd) {
 	if (cmd.size() < 3) {
 		return Translator::ERR_NEEDMOREPARAMS;
-    } else if (cmd[1] != server.getUser(fd).getNickName()) {
+    } else if (cmd[1] != server.getUser(fd)->getNickName()) {
 		return Translator::ERR_NOSUCHNICK;
     } else if (server.getPassword() != cmd[2]) {
 		return Translator::ERR_PASSWDMISMATCH;
@@ -21,13 +21,13 @@ int Oper::publishResultCode(Server& server, std::vector<std::string>& cmd, int f
 void Oper::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 	int code = publishResultCode(server, cmd, fd);
 	std::string message;
-	const std::string& nickName = server.getUser(fd).getNickName();
+	const std::string& nickName = server.getUser(fd)->getNickName();
 	int targetFd;
 
 	if (code == Translator::DEFAULT) {
 		message = translator->translateSuccess(nickName, cmd, *this);
-	    server.getUser(cmd[1]).setFlag(OP, true);
-        targetFd = server.getUser(cmd[1]).getFd();
+	    server.getUser(cmd[1])->setFlag(OP, true);
+        targetFd = server.getUser(cmd[1])->getFd();
 	}  else {
 		message = translator->translateResult(nickName, code, cmd);
         targetFd = fd;

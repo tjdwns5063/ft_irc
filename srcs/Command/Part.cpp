@@ -22,15 +22,15 @@ int Part::publishResultCode(Server& server, std::vector<std::string>& cmd, int f
 void Part::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 	int code = publishResultCode(server, cmd, fd);
 	std::string message;
-	const std::string& nickName = server.getUser(fd).getNickName();
+	const std::string& nickName = server.getUser(fd)->getNickName();
 
 	if (code == Translator::DEFAULT) {
-	    Channel &channel = server.getChannel(cmd[1]);
+	    Channel *channel = server.getChannel(cmd[1]);
 
 		message = translator->translateSuccess(nickName, cmd, *this);
-		send_channel(server, channel, message);
-		server.getUser(fd).leaveChannel(channel);
-		channel.removeUser(server.getUser(fd));
+		send_channel(server, *channel, message);
+		server.getUser(fd)->leaveChannel(*channel);
+		channel->removeUser(*server.getUser(fd));
 	}  else {
 		message = translator->translateResult(nickName, code, cmd);
         send_fd(server, fd, message);

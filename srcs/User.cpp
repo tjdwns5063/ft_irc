@@ -1,12 +1,12 @@
 #include "User.hpp"
 
 User::User(): fd(-1), userName(""), nickName(""), buf(new char[BUF_SIZE])  {
-    std::cout << "User Default Constructor Called\n";
     memset(buf, 0, sizeof(char) * BUF_SIZE);
     memset(flags, 0, sizeof(bool) * 4);
 }
 
 User::User(int fd): fd(fd), userName(""), nickName(""), buf(new char[BUF_SIZE]) {
+    std::cout << "User Default Constructor Called\n";
     memset(buf, 0, sizeof(char) * BUF_SIZE);
     memset(flags, 0, sizeof(bool) * 4);
 }

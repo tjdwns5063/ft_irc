@@ -20,11 +20,11 @@ int Nick::publishResultCode(Server& server, std::vector<std::string>& cmd) {
 void Nick::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 	int code = publishResultCode(server, cmd);
 	std::string message;
-	const std::string& nickName = server.getUser(fd).getNickName();
+	const std::string& nickName = server.getUser(fd)->getNickName();
 
 	if (code == Translator::DEFAULT) {
 		message = translator->translateSuccess(nickName, cmd, *this);
-		server.getUser(fd).setNickName(cmd[1]);
+		server.getUser(fd)->setNickName(cmd[1]);
     	send_all(server, message);
 	}  else {
 		message = translator->translateResult(nickName, code, cmd);

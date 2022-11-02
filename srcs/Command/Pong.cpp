@@ -8,7 +8,7 @@ Pong::~Pong() {}
 
 void Pong::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 	std::string message;
-	const std::string& nickName = server.getUser(fd).getNickName();
+	const std::string& nickName = server.getUser(fd)->getNickName();
 
 	message = translator->translateSuccess(nickName, cmd, *this);
 	send_fd(server, fd, message);

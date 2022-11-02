@@ -9,14 +9,14 @@ Quit::~Quit() {}
 
 void Quit::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 	std::string message;
-	const std::string& nickName = server.getUser(fd).getNickName();
-	User &user = server.getUser(fd);
-    map<string, Channel> &Channels = server.getChannels();
+	const std::string& nickName = server.getUser(fd)->getNickName();
+	User *user = server.getUser(fd);
+    map<string, Channel*> &Channels = server.getChannels();
 
     message = translator->translateSuccess(nickName, cmd, *this);
-    for (map<string, Channel>::iterator it = Channels.begin(); it != Channels.end(); it++)
+    for (map<string, Channel*>::iterator it = Channels.begin(); it != Channels.end(); it++)
     {
-        it->second.removeUser(user);
+        it->second->removeUser(*user);
     }
     server.removeUser(fd);
     close(fd);
