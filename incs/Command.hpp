@@ -16,21 +16,4 @@ void send_allChannel(Server &server, User &user, std::string s);
 void send_excludeme(Server &server, Channel &channel, User &user, std::string s);
 void send_fd(Server &server, int fd, std::string s);
 
-void cmd_nick(Server &server, int fd, std::vector<std::string> cmd);
-
-void cmd_user(Server &server, int fd, std::vector<std::string> cmd);
-void cmd_join(Server &server, int fd, std::vector<std::string> cmd);
-void cmd_privmsg(Server &server, int fd, std::vector<std::string> cmd);
-
-void cmd_part(Server &server, int fd, std::vector<std::string> cmd);
-void cmd_quit(Server &server, int fd);
-
-void cmd_kick(Server &server, int fd, std::vector<std::string>& cmd);
-void cmd_oper(Server &server, int fd, std::vector<std::string>& cmd);
-void cmd_pass(Server &server, int fd, std::vector<std::string>& cmd);
-
-void cmd_kill(Server &server, int fd, std::vector<std::string>& cmd);
-void cmd_unknown(Server& server, int fd, std::vector<std::string>& cmd);
-void cmd_ping(Server &server, int fd, std::vector<std::string>& cmd);
-
 #endif

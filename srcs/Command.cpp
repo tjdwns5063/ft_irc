@@ -7,7 +7,7 @@ void send_all(Server &server, std::string s)
 
 	for (std::map<int, User*>::iterator it = users.begin(); it != users.end(); it++)
 	{
-        std::cout << "fd: " << it->second->getFd() << '\n';
+        std::cout << "\t\tfd: " << it->second->getFd() << '\n';
         server.getUser(it->second->getFd())->setBuf(s);
         server.addEvents(it->second->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
 	}

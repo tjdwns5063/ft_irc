@@ -10,6 +10,7 @@
 #include "Pong.hpp"
 #include "Privmsg.hpp"
 #include "Quit.hpp"
+#include "Unknown.hpp"
 
 Server::Server(int port, std::string password): port(port), password(password) {
     server_sock = makeServerSock();
@@ -44,6 +45,7 @@ Server::Server(int port, std::string password): port(port), password(password) {
     commands["PONG"] = new Pong(translator, ICommand::PONG);
     commands["PRIVMSG"] = new Privmsg(translator, ICommand::PRIVMSG);
     commands["QUIT"] = new Quit(translator, ICommand::QUIT);
+    commands["UNKNOWN"] = new Unknown(translator, ICommand::UNKNOWN);
 
     addEvents(server_sock, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
 }
@@ -60,11 +62,8 @@ void Server::run() {
     }
 }
 
- static bool checkSpaceInBuf(Server& server, queue<int>& readFds) {
-    int currFd = readFds.front();
-    if (currFd < 0)
-        return false ;
-    char* buf = server.getUser(currFd)->getBuf();
+ static bool checkNewLineInBuf(Server& server, queue<int>& readFds) {
+    char* buf = server.getUser(readFds.front())->getBuf();
 
     if (strchr(buf, '\n')) {
         return true ;
@@ -93,7 +92,7 @@ int Server::checkEvent(int newEvent) {
             writeFlagLogic(currEvent);
         }
     }
-    while (!readFds.empty() && checkSpaceInBuf(*this, readFds)) {
+    while (!readFds.empty() && checkNewLineInBuf(*this, readFds)) {
         std::vector<std::string> s = split(string(this->getUser(readFds.front())->getBuf()), '\n');
         for (int j = 0; j < (int)s.size(); j++)
         {
@@ -101,8 +100,9 @@ int Server::checkEvent(int newEvent) {
                 // return -1;
             std::vector<std::string> cmd = split(s[j], ' ');
             if (!commands[cmd[0]])
-                continue ;
-            commands[cmd[0]]->execute(*this, cmd, readFds.front());
+                commands["UNKNOWN"]->execute(*this, cmd, readFds.front());
+            else
+                commands[cmd[0]]->execute(*this, cmd, readFds.front());
         }
         while (!s.empty())
             s.pop_back();

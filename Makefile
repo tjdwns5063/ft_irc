@@ -3,7 +3,7 @@ CLIENT=client
 FLAG=-Wall -Wextra -Werror
 INCLUDE=-I./incs/ -I./incs/Command/
 
-COMMAND_SRCS_NAME = CUser.cpp Join.cpp Kick.cpp Kill.cpp Nick.cpp Oper.cpp Part.cpp Pass.cpp Pong.cpp Privmsg.cpp Quit.cpp ICommand.cpp
+COMMAND_SRCS_NAME = CUser.cpp Join.cpp Kick.cpp Kill.cpp Nick.cpp Oper.cpp Part.cpp Pass.cpp Pong.cpp Privmsg.cpp Quit.cpp ICommand.cpp Unknown.cpp
 
 COMMAND_SRCS=$(addprefix ./srcs/Command/, $(COMMAND_SRCS_NAME))
 SERVER_SRCS=$(addprefix ./srcs/, Server.cpp User.cpp Channel.cpp main.cpp Translator.cpp utils.cpp Command.cpp)
