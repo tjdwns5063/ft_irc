@@ -25,7 +25,7 @@ private:
 public:
     User();
     User(int fd);
-    User(int fd, std::string userName, std::string nickName, bool op);
+    User(int fd, std::string userName, std::string nickName);
     User(const User& user);
     ~User();
     User& operator=(const User& user);

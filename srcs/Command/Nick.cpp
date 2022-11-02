@@ -7,7 +7,7 @@ Nick::Nick(Translator* translator, CommandType type): ICommand(translator, type)
 
 Nick::~Nick() {}
 
-int Nick::publishResultCode(Server& server, std::vector<std::string>& cmd, int fd) {
+int Nick::publishResultCode(Server& server, std::vector<std::string>& cmd) {
 	std::string message;
     
     if (cmd.size() < 2)
@@ -18,7 +18,7 @@ int Nick::publishResultCode(Server& server, std::vector<std::string>& cmd, int f
 }
 
 void Nick::execute(Server& server, std::vector<std::string>& cmd, int fd) {
-	int code = publishResultCode(server, cmd, fd);
+	int code = publishResultCode(server, cmd);
 	std::string message;
 	const std::string& nickName = server.getUser(fd).getNickName();
 

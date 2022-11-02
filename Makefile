@@ -1,6 +1,6 @@
 SERVER=server
 CLIENT=client
-FLAG=-Wall -Wextra -g #-Werror
+FLAG=-Wall -Wextra -Werror
 INCLUDE=-I./incs/ -I./incs/Command/
 
 COMMAND_SRCS_NAME = CUser.cpp Join.cpp Kick.cpp Kill.cpp Nick.cpp Oper.cpp Part.cpp Pass.cpp Pong.cpp Privmsg.cpp Quit.cpp ICommand.cpp

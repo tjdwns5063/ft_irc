@@ -16,7 +16,7 @@ void send_all(Server &server, std::string s)
 void send_channel(Server &server, Channel &channel, string s)
 {
     std::vector<User> users = channel.getUsers();
-    for (int i = 0 ; i < users.size(); i++)
+    for (unsigned long i = 0 ; i < users.size(); i++)
     {
         server.getUser(users[i].getFd()).setBuf(s);
         server.addEvents(users[i].getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
@@ -26,7 +26,7 @@ void send_channel(Server &server, Channel &channel, string s)
 void send_allChannel(Server &server, User &user, string s)
 {
     std::vector<Channel> &channels = user.getChannels();
-    for (int i = 0 ; i < channels.size(); i++)
+    for (unsigned long i = 0 ; i < channels.size(); i++)
     {
         std::cout << "channel name :" << channels[i].getName() << std::endl;
     }
