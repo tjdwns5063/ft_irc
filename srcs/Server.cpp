@@ -250,6 +250,13 @@ std::map<int, User*>& Server::getUsers() {
     return (this->users);
 }
 
+bool Server::chkChannel(string s)
+{
+    if (channels.find(s) == channels.end())
+        return true;
+    return false;
+}
+
 const std::string& Server::getPassword() const {
     return (this->password);
 }

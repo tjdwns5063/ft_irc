@@ -7,7 +7,7 @@ class Part: public ICommand {
 public:
 	Part(Translator* translator, CommandType type);
 	~Part();
-	int publishResultCode(std::vector<std::string>& cmd);
+	int publishResultCode(Server& server, std::vector<std::string>& cmd, int fd);
 	void execute(Server& server, std::vector<std::string>& cmd, int fd);
 };
 

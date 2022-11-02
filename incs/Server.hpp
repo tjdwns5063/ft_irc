@@ -59,6 +59,7 @@ public:
     void addChannel(string s);
     std::map<string, Channel*> &getChannels();
     Channel *getChannel(string s);
+    bool chkChannel(string s);
     void removeUser(int fd);
     bool searchUser(std::string& nickName);
 };
