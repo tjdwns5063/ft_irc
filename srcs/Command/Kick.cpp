@@ -46,7 +46,6 @@ void Kick::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 		message = translator->translateSuccess(nickName, cmd, *this);
 		send_channel(server, *channel, message);
     (*channel->searchUser(cmd[2]))->leaveChannel(*channel);
-    // leaveChannel(channel);
 		channel->removeUser(cmd[2]);
 	}  else {
 		message = translator->translateResult(nickName, code, cmd);
