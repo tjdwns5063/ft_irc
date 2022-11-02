@@ -5,8 +5,11 @@
 #include "Command.hpp"
 
 class Server;
+class ICommand;
 
-enum ResultCode {
+class Translator {
+public:
+    enum ResultCode {
     DEFAULT = 0,
     
     RPL_YOUREOPER = 381,
@@ -28,9 +31,12 @@ enum ResultCode {
 
     ERR_NOPRIVILEGES = 481,
     ERR_CHANOPRIVSNEEDED = 482
+    };
+
+    std::string translateResult(const std::string& nickName, int resultCode, std::vector<std::string> cmd);
+    std::string translateSuccess(const std::string& nickName, std::vector<std::string>& cmd, ICommand& command);
 };
 
 int request(Server &server, int fd, std::string s);
-std::string translateResult(const std::string& nickName, ResultCode result, std::vector<std::string> cmd);
 
 #endif

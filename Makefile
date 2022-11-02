@@ -1,26 +1,24 @@
 SERVER=server
 CLIENT=client
 FLAG=-Wall -Wextra -g #-Werror
-INCLUDE=-I./incs/
+INCLUDE=-I./incs/ -I./incs/Command/
 
+COMMAND_SRCS_NAME = CUser.cpp Join.cpp Kick.cpp Kill.cpp Nick.cpp Oper.cpp Part.cpp Pass.cpp Pong.cpp Privmsg.cpp Quit.cpp ICommand.cpp
+
+COMMAND_SRCS=$(addprefix ./srcs/Command/, $(COMMAND_SRCS_NAME))
 SERVER_SRCS=$(addprefix ./srcs/, Server.cpp User.cpp Channel.cpp main.cpp Translator.cpp utils.cpp Command.cpp)
-CLIENT_SRCS=$(addprefix ./srcs/, practice_client.cpp)
+SRCS = $(COMMAND_SRCS) $(SERVER_SRCS)
+OBJS=$(SRCS:.cpp=.o)
 
-SERVER_OBJS=$(SERVER_SRCS:.cpp=.o)
-CLIENT_OBJS=$(CLIENT_SRCS:.cpp=.o)
-
-$(SERVER): $(SERVER_OBJS)
-	c++ $(FLAG) $(INCLUDE) $(SERVER_OBJS) -o $(SERVER)
-
-$(CLIENT): $(CLIENT_OBJS)
-	c++ $(FLAG) $(INCLUDE) $(CLIENT_OBJS) -o $(CLIENT)
+$(SERVER): $(OBJS)
+	c++ $(FLAG) $(INCLUDE) $(OBJS) -o $(SERVER)
 
 %.o: %.cpp
 	c++ -c $(FLAG) $(INCLUDE) $< -o $@
 
 clean:
-	rm -rf $(SERVER_OBJS) $(CLIENT_OBJS)
+	rm -rf $(OBJS)
 
 fclean:
-	rm -rf $(SERVER_OBJS) $(CLIENT_OBJS)
-	rm -rf $(SERVER) $(CLIENT)
+	rm -rf $(OBJS)
+	rm -rf $(SERVER)

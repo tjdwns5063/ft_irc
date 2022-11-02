@@ -1,4 +1,15 @@
-#include "../incs/Server.hpp"
+#include "Server.hpp"
+#include "Join.hpp"
+#include "CUser.hpp"
+#include "Kick.hpp"
+#include "Kill.hpp"
+#include "Nick.hpp"
+#include "Oper.hpp"
+#include "Part.hpp"
+#include "Pass.hpp"
+#include "Pong.hpp"
+#include "Privmsg.hpp"
+#include "Quit.hpp"
 
 Server::Server(int port, std::string password): port(port), password(password) {
     server_sock = makeServerSock();
@@ -21,10 +32,25 @@ Server::Server(int port, std::string password): port(port), password(password) {
         status = -1;
         std::cerr << "kqueue error\n";
     }
+    translator = new Translator();
+    commands["USER"] = new CUser(translator, ICommand::USER);
+    commands["JOIN"] = new Join(translator, ICommand::JOIN);
+    commands["KICK"] = new Kick(translator, ICommand::KICK);
+    commands["KILL"] = new Kill(translator, ICommand::KILL);
+    commands["NICK"] = new Nick(translator, ICommand::NICK);
+    commands["OPER"] = new Oper(translator, ICommand::OPER);
+    commands["PART"] = new Part(translator, ICommand::PART);
+    commands["PASS"] = new Pass(translator, ICommand::PASS);
+    commands["PONG"] = new Pong(translator, ICommand::PONG);
+    commands["PRIVMSG"] = new Privmsg(translator, ICommand::PRIVMSG);
+    commands["QUIT"] = new Quit(translator, ICommand::QUIT);
+
     addEvents(server_sock, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
 }
 
-Server::~Server() {}
+Server::~Server() {
+    delete translator;
+}
 
 void Server::run() {
     while (1) {
@@ -65,8 +91,12 @@ int Server::checkEvent(int newEvent) {
         std::vector<std::string> s = split(string(this->getUser(readFds.front()).getBuf()), '\n');
         for (int j = 0; j < (int)s.size(); j++)
         {
-            if (request(*this, readFds.front(), s[j]))
-                return -1;
+            // if (request(*this, readFds.front(), s[j]))
+                // return -1;
+            std::vector<std::string> cmd = split(s[j], ' ');
+            if (!commands[cmd[0]])
+                continue ;
+            commands[cmd[0]]->execute(*this, cmd, readFds.front());
         }
         while (!s.empty())
             s.pop_back();

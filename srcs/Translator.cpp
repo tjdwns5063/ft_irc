@@ -1,7 +1,8 @@
 #include "Translator.hpp"
 #include "Command.hpp"
+#include "ICommand.hpp"
 
-std::string translateResult(const std::string& nickName, ResultCode result, std::vector<std::string> cmd) {
+std::string Translator::translateResult(const std::string& nickName, int result, std::vector<std::string> cmd) {
     // :scarlet.irc.ozinger.org 001 seongjki :Welcome to the Ozinger IRC Network seongjki!seongjki@121.135.181.35
     // <network name> <number reply> <nickname> <:message>
     std::string message;
@@ -70,71 +71,116 @@ std::string translateResult(const std::string& nickName, ResultCode result, std:
     return message;
 }
 
-
-
-
-int request(Server &server, int fd, std::string s)
-{
-    vector<std::string> cmd = split(s, ' ');
-
-    if (fd < 0)
-        return 1;
-    // translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
-    for (int i = 0 ; i < (int)cmd.size(); i++)
+std::string Translator::translateSuccess(const std::string& nickName, std::vector<std::string>& cmd, ICommand& command) {
+    std::string message;
+    
+    switch (command.getType())
     {
-        std::cout << "cmd" << i << ": " << cmd[i] << std::endl;
+    case ICommand::PASS :
+        message = ":localhost :Password is Correct\n";
+        break ;
+    case ICommand::NICK :
+        message = ":" + nickName + " NICK " + cmd[1] + "\n";
+        break ;
+    case ICommand::USER :
+        message = ":" + nickName + " 001 " + nickName + "\n";
+        break ;
+    case ICommand::JOIN :
+        message = ":" + nickName + " JOIN " + " :" + cmd[1] + "\n";
+        break ;
+    case ICommand::PRIVMSG :
+        message = ":" + nickName + " " + cmd[0] + " " + cmd[1] + " " + ": " + cmd[2] + "\n";
+        break ;
+    case ICommand::PART :
+        message = ":" + nickName + " PART " + cmd[1] + "\n";
+        break ;
+    case ICommand::QUIT :
+        message = ":" + nickName + " QUIT :Quit Bye Bye\n";
+        break ;
+    case ICommand::KICK :
+        message = ":" + nickName + " KICK " + cmd[1] + " " + cmd[2];
+        if (cmd.size() > 3)
+            message += (" :" + cmd[2] + "\n");
+        else
+            message += "\n";
+        break ;
+    case ICommand::OPER :
+        message = ":localhost 381 " + cmd[1] + " :You are now an IRC operator\n";
+        break ;
+    case ICommand::KILL :
+        message = ":" + nickName + " KILL " + cmd[1] + " :" + nickName + "\n";
+        break ;
+    case ICommand::PONG :
+        message = "PONG " + cmd[1] + "\n";
+        break ;
+    default:
+        break;
     }
-    if (cmd[0] == "PASS")
-    {
-        cmd_pass(server, fd, cmd);
-    }
-    else if (cmd[0] == "NICK")
-    {
-        cmd_nick(server, fd, cmd);
-    }
-    else if (cmd[0] == "USER")
-    {
-        cmd_user(server, fd, cmd);
-    }
-    else if (cmd[0] == "JOIN") // channel join
-    {
-        cmd_join(server, fd, cmd);
-    }
-    else if (cmd[0] == "PRIVMSG") // send msg
-    {
-        cmd_privmsg(server, fd, cmd);
-    }
-    else if (cmd[0] == "LEAVE" || cmd[0] == "PART") // leave channel
-    {
-        cmd_part(server, fd, cmd);
-    }
-    else if (cmd[0] == "QUIT")
-    {
-        cmd_quit(server, fd);
-    }
-    else if (cmd[0] == "KICK")
-    {
-        cmd_kick(server, fd, cmd);
-    }
-    else if (cmd[0] == "OPER")
-    {
-        cmd_oper(server, fd, cmd);
-    }
-    else if (cmd[0] == "kill")
-    {
-        cmd_kill(server, fd, cmd);
-    }    
-    else if (cmd[0] == "PING")
-    {
-        cmd_ping(server, fd, cmd);
-    }
-     else {
-        cmd_unknown(server, fd, cmd);
-    }
-
-    while (!cmd.empty())
-        cmd.pop_back();
-    // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
-    return 0;
+    return message;
 }
+
+// int request(Server &server, int fd, std::string s)
+// {
+//     vector<std::string> cmd = split(s, ' ');
+
+//     if (fd < 0)
+//         return 1;
+//     // translateResult(server.getUser(fd).getNickName(), DEFAULT, cmd);
+//     for (int i = 0 ; i < (int)cmd.size(); i++)
+//     {
+//         std::cout << "cmd" << i << ": " << cmd[i] << std::endl;
+//     }
+//     if (cmd[0] == "PASS")
+//     {
+//         cmd_pass(server, fd, cmd);
+//     }
+//     else if (cmd[0] == "NICK")
+//     {
+//         cmd_nick(server, fd, cmd);
+//     }
+//     else if (cmd[0] == "USER")
+//     {
+//         cmd_user(server, fd, cmd);
+//     }
+//     else if (cmd[0] == "JOIN") // channel join
+//     {
+//         cmd_join(server, fd, cmd);
+//     }
+//     else if (cmd[0] == "PRIVMSG") // send msg
+//     {
+//         cmd_privmsg(server, fd, cmd);
+//     }
+//     else if (cmd[0] == "LEAVE" || cmd[0] == "PART") // leave channel
+//     {
+//         cmd_part(server, fd, cmd);
+//     }
+//     else if (cmd[0] == "QUIT")
+//     {
+//         cmd_quit(server, fd);
+//     }
+//     else if (cmd[0] == "KICK")
+//     {
+//         cmd_kick(server, fd, cmd);
+//     }
+//     else if (cmd[0] == "OPER")
+//     {
+//         cmd_oper(server, fd, cmd);
+//     }
+//     else if (cmd[0] == "kill")
+//     {
+//         cmd_kill(server, fd, cmd);
+//     }    
+//     else if (cmd[0] == "PING")
+//     {
+//         cmd_ping(server, fd, cmd);
+//     }
+//      else {
+//         cmd_unknown(server, fd, cmd);
+//     }
+
+//     while (!cmd.empty())
+//         cmd.pop_back();
+//     // memset(server.getUser(fd).getBuf(), 0, sizeof(char) * 1024);
+//     return 0;
+// }
  

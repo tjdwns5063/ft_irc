@@ -17,6 +17,10 @@
 using namespace std;
 
 #define BUF_SIZE 4096
+
+class ICommand;
+class Translator;
+
 class Server {
 private:
     int status;
@@ -30,6 +34,8 @@ private:
     std::map<string, Channel> channels;
     struct kevent event_list[10];
     std::queue<int> readFds;
+    Translator *translator;
+    std::map<std::string, ICommand*> commands;
 
 private:
     int errorFlagLogic(struct kevent* currEvent);
