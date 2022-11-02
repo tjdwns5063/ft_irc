@@ -25,6 +25,7 @@ void CUser::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 	if (code == Translator::DEFAULT) {
 		message = translator->translateSuccess(nickName, cmd, *this);
 		server.getUser(fd)->setUserName(cmd[1] + "@" + cmd[3]);
+		server.getUser(fd)->setFlag(REGISTERD, true);
 	}  else {
 		message = translator->translateResult(nickName, code, cmd);
 	}

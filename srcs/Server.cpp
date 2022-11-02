@@ -42,7 +42,7 @@ Server::Server(int port, std::string password): port(port), password(password) {
     commands["OPER"] = new Oper(translator, ICommand::OPER);
     commands["PART"] = new Part(translator, ICommand::PART);
     commands["PASS"] = new Pass(translator, ICommand::PASS);
-    commands["PONG"] = new Pong(translator, ICommand::PONG);
+    commands["PING"] = new Pong(translator, ICommand::PONG);
     commands["PRIVMSG"] = new Privmsg(translator, ICommand::PRIVMSG);
     commands["QUIT"] = new Quit(translator, ICommand::QUIT);
     commands["UNKNOWN"] = new Unknown(translator, ICommand::UNKNOWN);
@@ -252,8 +252,8 @@ std::map<int, User*>& Server::getUsers() {
 bool Server::chkChannel(string s)
 {
     if (channels.find(s) == channels.end())
-        return true;
-    return false;
+        return false;
+    return true;
 }
 
 const std::string& Server::getPassword() const {
