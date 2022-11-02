@@ -96,8 +96,6 @@ int Server::checkEvent(int newEvent) {
         std::vector<std::string> s = split(string(this->getUser(readFds.front())->getBuf()), '\n');
         for (int j = 0; j < (int)s.size(); j++)
         {
-            // if (request(*this, readFds.front(), s[j]))
-                // return -1;
             std::vector<std::string> cmd = split(s[j], ' ');
             if (!commands[cmd[0]])
                 commands["UNKNOWN"]->execute(*this, cmd, readFds.front());
@@ -224,7 +222,8 @@ User* Server::getUser(std::string& nick) {
 
 void Server::removeUser(int fd)
 {
-    users.erase(fd);
+    if (!users[fd])
+        users.erase(fd);
 }
 
 void Server::addChannel(string s)
