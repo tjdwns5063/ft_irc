@@ -10,11 +10,13 @@ Oper::~Oper() {}
 int Oper::publishResultCode(Server& server, std::vector<std::string>& cmd, int fd) {
 	if (cmd.size() < 3) {
 		return Translator::ERR_NEEDMOREPARAMS;
-    } else if (cmd[1] != server.getUser(fd)->getNickName()) {
+    }  else if (!server.searchUser(cmd[1])) {
 		return Translator::ERR_NOSUCHNICK;
     } else if (server.getPassword() != cmd[2]) {
 		return Translator::ERR_PASSWDMISMATCH;
-    } 
+    } else if (cmd[1] != server.getUser(fd)->getNickName() && !server.getUser(fd)->getFlag(OP)) {
+		return Translator::ERR_NOPRIVILEGES;
+	}
 	return Translator::DEFAULT;
 }
 

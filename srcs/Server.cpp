@@ -43,7 +43,7 @@ Server::Server(int port, std::string password): port(port), password(password) {
     commands["OPER"] = new Oper(translator, ICommand::OPER);
     commands["PART"] = new Part(translator, ICommand::PART);
     commands["PASS"] = new Pass(translator, ICommand::PASS);
-    commands["PONG"] = new Pong(translator, ICommand::PONG);
+    commands["PING"] = new Pong(translator, ICommand::PONG);
     commands["PRIVMSG"] = new Privmsg(translator, ICommand::PRIVMSG);
     commands["QUIT"] = new Quit(translator, ICommand::QUIT);
     commands["UNKNOWN"] = new Unknown(translator, ICommand::UNKNOWN);
@@ -83,6 +83,10 @@ int Server::checkEvent(int newEvent) {
             errorFlagLogic(currEvent);
         }
         if (currEvent->flags & EV_EOF) {
+            std::vector<Channel*>& channels = getUser(currEvent->ident)->getChannels();
+            for (unsigned long i = 0; i < channels.size(); ++i) {
+                channels[i]->removeUser(*getUser(currEvent->ident));
+            }
             removeUser(currEvent->ident);
             close(currEvent->ident);
             continue ;
@@ -99,6 +103,10 @@ int Server::checkEvent(int newEvent) {
         for (int j = 0; j < (int)s.size(); j++)
         {
             std::vector<std::string> cmd = split(s[j], ' ');
+            if (cmd[0] == "MODE" || cmd[0] == "PONG") {
+                memset(getUser(readFds.front())->getBuf(), 0, BUF_SIZE);
+                continue ;
+            }
             if (!commands[cmd[0]])
                 commands["UNKNOWN"]->execute(*this, cmd, readFds.front());
             else
@@ -183,6 +191,10 @@ int Server::writeFlagLogic(struct kevent* currEvent) {
     }
     memset(buf, 0, BUF_SIZE);
     if ((getUser(currEvent->ident)->getFlag(KILLED))) {
+        std::vector<Channel*> channels = getUser(currEvent->ident)->getChannels();
+        for (unsigned long i = 0; i < channels.size(); ++i) {
+            channels[i]->removeUser(*getUser(currEvent->ident));
+        }
         removeUser(currEvent->ident);
         close(currEvent->ident);
     } else {
