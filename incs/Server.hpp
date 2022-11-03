@@ -41,6 +41,7 @@ private:
     int errorFlagLogic(struct kevent* currEvent);
     int readFlagLogic(struct kevent* currEvent);
     int writeFlagLogic(struct kevent* currEvent);
+    int processCommand();
     void handleWriteFlag(int& writeFlag);
 
 public:

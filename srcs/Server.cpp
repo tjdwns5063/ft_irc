@@ -43,7 +43,7 @@ Server::Server(int port, std::string password): port(port), password(password) {
     commands["OPER"] = new Oper(translator, ICommand::OPER);
     commands["PART"] = new Part(translator, ICommand::PART);
     commands["PASS"] = new Pass(translator, ICommand::PASS);
-    commands["PONG"] = new Pong(translator, ICommand::PONG);
+    commands["PING"] = new Pong(translator, ICommand::PONG);
     commands["PRIVMSG"] = new Privmsg(translator, ICommand::PRIVMSG);
     commands["QUIT"] = new Quit(translator, ICommand::QUIT);
     commands["UNKNOWN"] = new Unknown(translator, ICommand::UNKNOWN);
@@ -58,13 +58,18 @@ Server::~Server() {
 void Server::run() {
     while (1) {
         // std::system("leaks server");
-        int newEvent = kevent(kqueue_fd, &changed[0], changed.size(), event_list, 10, NULL);
+        static timespec ts;
+        ts.tv_sec = 10;
+        ts.tv_nsec = 0;
+        int newEvent = kevent(kqueue_fd, &changed[0], changed.size(), event_list, 10, &ts);
         changed.clear();
         checkEvent(newEvent);
     }
 }
 
  static bool checkNewLineInBuf(Server& server, queue<int>& readFds) {
+    if (server.getUsers().size() == 0)
+        return false;
     char* buf = server.getUser(readFds.front())->getBuf();
 
     if (strchr(buf, '\n')) {
@@ -75,7 +80,6 @@ void Server::run() {
 
 int Server::checkEvent(int newEvent) {
     struct kevent* currEvent;
-    std::cout << "userSize: " << users.size() << '\n';
 
     for (int i = 0; i < newEvent; ++i) {
         currEvent = &event_list[i];
@@ -83,6 +87,10 @@ int Server::checkEvent(int newEvent) {
             errorFlagLogic(currEvent);
         }
         if (currEvent->flags & EV_EOF) {
+            std::vector<Channel*>& channels = getUser(currEvent->ident)->getChannels();
+            for (unsigned long i = 0; i < channels.size(); ++i) {
+                channels[i]->removeUser(*getUser(currEvent->ident));
+            }
             removeUser(currEvent->ident);
             close(currEvent->ident);
             continue ;
@@ -94,34 +102,10 @@ int Server::checkEvent(int newEvent) {
             writeFlagLogic(currEvent);
         }
     }
-    while (!readFds.empty() && checkNewLineInBuf(*this, readFds)) {
-        std::vector<std::string> s = split(string(this->getUser(readFds.front())->getBuf()), '\n');
-        for (int j = 0; j < (int)s.size(); j++)
-        {
-            std::vector<std::string> cmd = split(s[j], ' ');
-            if (!commands[cmd[0]])
-                commands["UNKNOWN"]->execute(*this, cmd, readFds.front());
-            else
-                commands[cmd[0]]->execute(*this, cmd, readFds.front());
-        }
-        while (!s.empty())
-            s.pop_back();
-        readFds.pop();
+    while (!readFds.empty()) {
+        processCommand();
     }
     return 0;
-}
-
-int Server::connectClient()
-{
-    int client_socket;
-
-    if ((client_socket = accept(server_sock, NULL, NULL)) == -1) {
-        std::cerr << "accept error\n";
-        return -1;
-    }
-    fcntl(client_socket, F_SETFL, O_NONBLOCK);
-    addEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-    return client_socket;
 }
 
 void Server::addEvents(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
@@ -183,12 +167,40 @@ int Server::writeFlagLogic(struct kevent* currEvent) {
     }
     memset(buf, 0, BUF_SIZE);
     if ((getUser(currEvent->ident)->getFlag(KILLED))) {
+        std::vector<Channel*> channels = getUser(currEvent->ident)->getChannels();
+        for (unsigned long i = 0; i < channels.size(); ++i) {
+            channels[i]->removeUser(*getUser(currEvent->ident));
+        }
         removeUser(currEvent->ident);
         close(currEvent->ident);
     } else {
         addEvents(currEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     }
     return 1;
+}
+
+int Server::processCommand() {
+    if (!checkNewLineInBuf(*this, readFds)) {
+        readFds.pop();
+        return 0;
+    }
+    std::vector<std::string> s = split(string(this->getUser(readFds.front())->getBuf()), '\n');
+    for (int j = 0; j < (int)s.size(); j++)
+    {
+        std::vector<std::string> cmd = split(s[j], ' ');
+        if (cmd[0] == "MODE" || cmd[0] == "PONG") {
+            memset(getUser(readFds.front())->getBuf(), 0, BUF_SIZE);
+            continue ;
+        }
+        if (!commands[cmd[0]]) {
+            commands["UNKNOWN"]->execute(*this, cmd, readFds.front());
+        }
+        else
+            commands[cmd[0]]->execute(*this, cmd, readFds.front());
+    }
+    s.clear();
+    readFds.pop();
+    return 0;
 }
 
 int Server::getStatus() const {
@@ -205,6 +217,19 @@ int Server::makeServerSock() {
         return -1;
     }
     return server_sock;
+}
+
+int Server::connectClient()
+{
+    int client_socket;
+
+    if ((client_socket = accept(server_sock, NULL, NULL)) == -1) {
+        std::cerr << "accept error\n";
+        return -1;
+    }
+    fcntl(client_socket, F_SETFL, O_NONBLOCK);
+    addEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+    return client_socket;
 }
 
 User* Server::getUser(int n)

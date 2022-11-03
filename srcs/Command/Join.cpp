@@ -22,10 +22,20 @@ void Join::execute(Server& server, std::vector<std::string>& cmd, int fd) {
 
 	if (code == Translator::DEFAULT) {
 		Channel* channel = server.getChannel(cmd[1]);
+		std::vector<User*>& users = channel->getUsers();
 
-		message = translator->translateSuccess(nickName, cmd, *this);
 		channel->addUser(*server.getUser(fd));
         server.getUser(fd)->addChannel(*channel);
+		message = translator->translateSuccess(nickName, cmd, *this);
+        message += (":localhost 353 " + nickName + " @ " + cmd[1] + " :");
+		for (unsigned long i = 0; i < users.size(); ++i) {
+			std::cout << "i: " << i << " nick: " << users[i]->getNickName() << '\n';
+			message += users[i]->getNickName();
+			message += " ";
+		}
+		message += "\n";
+		// message[message.size() - 1] = '\n';
+		message += ":localhost 366 " + nickName + " " + cmd[1] + " :End of /NAMES list.\n";
         send_channel(server, *channel, message);
 	}  else {
 		message = translator->translateResult(nickName, code, cmd);
