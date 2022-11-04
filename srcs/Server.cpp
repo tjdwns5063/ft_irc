@@ -12,6 +12,22 @@
 #include "Quit.hpp"
 #include "Unknown.hpp"
 
+void Server::initCommands() {
+    commands["USER"] = new CUser(translator, ICommand::USER);
+    commands["JOIN"] = new Join(translator, ICommand::JOIN);
+    commands["KICK"] = new Kick(translator, ICommand::KICK);
+    commands["KILL"] = new Kill(translator, ICommand::KILL);
+    commands["kill"] = new Kill(translator, ICommand::KILL);
+    commands["NICK"] = new Nick(translator, ICommand::NICK);
+    commands["OPER"] = new Oper(translator, ICommand::OPER);
+    commands["PART"] = new Part(translator, ICommand::PART);
+    commands["PASS"] = new Pass(translator, ICommand::PASS);
+    commands["PING"] = new Pong(translator, ICommand::PONG);
+    commands["PRIVMSG"] = new Privmsg(translator, ICommand::PRIVMSG);
+    commands["QUIT"] = new Quit(translator, ICommand::QUIT);
+    commands["UNKNOWN"] = new Unknown(translator, ICommand::UNKNOWN);
+}
+
 Server::Server(int port, std::string password): port(port), password(password) {
     server_sock = makeServerSock();
     status = 0;
@@ -34,20 +50,7 @@ Server::Server(int port, std::string password): port(port), password(password) {
         std::cerr << "kqueue error\n";
     }
     translator = new Translator();
-    commands["USER"] = new CUser(translator, ICommand::USER);
-    commands["JOIN"] = new Join(translator, ICommand::JOIN);
-    commands["KICK"] = new Kick(translator, ICommand::KICK);
-    commands["KILL"] = new Kill(translator, ICommand::KILL);
-    commands["kill"] = new Kill(translator, ICommand::KILL);
-    commands["NICK"] = new Nick(translator, ICommand::NICK);
-    commands["OPER"] = new Oper(translator, ICommand::OPER);
-    commands["PART"] = new Part(translator, ICommand::PART);
-    commands["PASS"] = new Pass(translator, ICommand::PASS);
-    commands["PING"] = new Pong(translator, ICommand::PONG);
-    commands["PRIVMSG"] = new Privmsg(translator, ICommand::PRIVMSG);
-    commands["QUIT"] = new Quit(translator, ICommand::QUIT);
-    commands["UNKNOWN"] = new Unknown(translator, ICommand::UNKNOWN);
-
+    initCommands();
     addEvents(server_sock, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
 }
 
@@ -85,6 +88,7 @@ int Server::checkEvent(int newEvent) {
         currEvent = &event_list[i];
         if (currEvent->flags & EV_ERROR) {
             errorFlagLogic(currEvent);
+            continue ;
         }
         if (currEvent->flags & EV_EOF) {
             std::vector<Channel*>& channels = getUser(currEvent->ident)->getChannels();

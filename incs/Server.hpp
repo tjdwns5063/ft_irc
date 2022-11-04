@@ -43,6 +43,7 @@ private:
     int writeFlagLogic(struct kevent* currEvent);
     int processCommand();
     void handleWriteFlag(int& writeFlag);
+    void initCommands();
 
 public:
     Server(int port, std::string password);
