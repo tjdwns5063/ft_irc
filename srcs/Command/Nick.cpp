@@ -8,8 +8,6 @@ Nick::Nick(Translator* translator, CommandType type): ICommand(translator, type)
 Nick::~Nick() {}
 
 int Nick::publishResultCode(Server& server, std::vector<std::string>& cmd) {
-	std::string message;
-    
     if (cmd.size() < 2)
 		return Translator::ERR_NEEDMOREPARAMS;
 	if (server.searchUser(cmd[1]))

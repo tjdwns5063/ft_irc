@@ -8,7 +8,7 @@ Kick::Kick(Translator* translator, CommandType type): ICommand(translator, type)
 Kick::~Kick() {}
 
 int Kick::publishResultCode(Server& server, std::vector<std::string>& cmd, int fd) {
-	std::string message;
+	  std::string message;
     map<string, Channel*>& channels = server.getChannels();
     User* user = server.getUser(fd);
     std::string nickname = user->getNickName();
@@ -32,23 +32,22 @@ int Kick::publishResultCode(Server& server, std::vector<std::string>& cmd, int f
 			return Translator::ERR_USERNOTINCHANNEL;
         }
     }
-	return Translator::DEFAULT;
+	  return Translator::DEFAULT;
 }
 
 void Kick::execute(Server& server, std::vector<std::string>& cmd, int fd) {
-	int code = publishResultCode(server, cmd, fd);
-	std::string message;
-	const std::string& nickName = server.getUser(fd)->getNickName();
+    int code = publishResultCode(server, cmd, fd);
+    std::string message;
+    const std::string& nickName = server.getUser(fd)->getNickName();
     Channel* channel = server.getChannel(cmd[1]);
 
-
-	if (code == Translator::DEFAULT) {
-		message = translator->translateSuccess(nickName, cmd, *this);
-		send_channel(server, *channel, message);
-    (*channel->searchUser(cmd[2]))->leaveChannel(*channel);
-		channel->removeUser(cmd[2]);
-	}  else {
-		message = translator->translateResult(nickName, code, cmd);
+    if (code == Translator::DEFAULT) {
+        message = translator->translateSuccess(nickName, cmd, *this);
+        send_channel(server, *channel, message);
+        (*channel->searchUser(cmd[2]))->leaveChannel(*channel);
+        channel->removeUser(cmd[2]);
+    } else {
+        message = translator->translateResult(nickName, code, cmd);
         send_fd(server, fd, message);
-	}
+    }
 }

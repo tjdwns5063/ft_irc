@@ -3,7 +3,6 @@
 void send_all(Server &server, std::string s)
 {
 	std::map<int, User*> &users = server.getUsers();
-    std::cout << users.size() << '\n';
 
 	for (std::map<int, User*>::iterator it = users.begin(); it != users.end(); it++)
 	{
