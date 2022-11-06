@@ -87,7 +87,12 @@ std::string Translator::translateSuccess(const std::string& nickName, std::vecto
         message = ":" + nickName + " JOIN " + ":" + cmd[1] + "\n";
         break ;
     case ICommand::PRIVMSG :
-        message = ":" + nickName + " " + cmd[0] + " " + cmd[1] + " " + ": " + cmd[2] + "\n";
+        message = ":" + nickName + " " + cmd[0] + " " + cmd[1] + " :";
+        for (unsigned long i = 2; i < cmd.size(); ++i) {
+            message += cmd[i];
+            message += " ";
+        }
+        message += "\n";
         break ;
     case ICommand::PART :
         message = ":" + nickName + " PART " + cmd[1] + "\n";
